@@ -74,20 +74,9 @@ export default function HomePage() {
 
       {/* Search Bar */}
       <div className="absolute top-[68px] left-3.5 right-3.5 z-30">
-        <div className="bg-bau-cream border-[2.5px] border-bau-black rounded-[18px_6px_18px_18px] p-2 flex items-center gap-2 shadow-bau">
-          <div className="w-7 h-7 rounded-full bg-bau-yellow border-2 border-bau-black flex items-center justify-center text-xs shrink-0">
+        <div className="bg-bau-cream border-[2.5px] border-bau-black rounded-2xl p-2.5 flex items-center gap-2.5 shadow-bau">
+        <div className="w-7 h-7 rounded-full bg-bau-yellow border-2 border-bau-black flex items-center justify-center text-xs shrink-0">
             🔍
-          </div>
-          <input
-            type="text"
-            placeholder="Search Bangsar, satay, BKT…"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="border-none bg-transparent outline-none font-semibold text-xs text-bau-black flex-1"
-          />
-          <span className="bg-bau-blue text-white text-[10px] font-baloo font-extrabold px-2 py-0.5 rounded border border-bau-black uppercase">
-            KL LIVE
-          </span>
         </div>
       </div>
 
