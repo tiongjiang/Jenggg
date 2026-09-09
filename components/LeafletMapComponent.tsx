@@ -21,7 +21,7 @@ function createPinIcon(tier: string | null, isRequested: boolean) {
   const label = isReq ? '🎯 Requested' : `${ratingDef.emoji} ${ratingDef.label}`;
 
   return L.divIcon({
-    className: 'custom-pin',
+    className: 'custom-pin transition-transform duration-300',
     html: `
       <div class="bauhaus-pin ${tierClass}">
         <div class="pin-badge" style="background-color: ${isReq ? '#FFFFFF' : ratingDef.bgHex}; color: #141416;">${label}</div>
@@ -34,18 +34,14 @@ function createPinIcon(tier: string | null, isRequested: boolean) {
   });
 }
 
-// User Trainer Boy Icon
+// User Trainer Boy Icon 
 function createUserTrainerIcon() {
   return L.divIcon({
-    className: 'user-trainer-marker',
+    className: 'user-trainer-marker transition-transform duration-300',
     html: `
-      <!-- Added .user-trainer-sprite class here to counter-tilt it! -->
-      <div class="user-trainer-sprite" style="position:relative;width:44px;height:44px;display:flex;align-items:center;justify-content:center;">
-        <!-- Pulsing interaction reach halo -->
-        <div style="position:absolute;inset:-15px;border-radius:50%;background:rgba(255,204,0,0.25); border: 2px solid rgba(255,204,0,0.6); animation:pulse 2s infinite; transform: rotateX(45deg);"></div>
-        <!-- Shadow -->
+      <div style="position:relative;width:44px;height:44px;display:flex;align-items:center;justify-content:center;">
+        <div style="position:absolute;inset:-10px;border-radius:50%;background:rgba(255,204,0,0.3);animation:pulse 2s infinite;"></div>
         <div style="position:absolute;bottom:2px;width:24px;height:7px;border-radius:50%;background:rgba(0,0,0,0.45);filter:blur(1px);"></div>
-        <!-- 2D Trainer Boy -->
         <div style="position:relative;z-index:2;transform:scale(1.2);">
           <svg viewBox="0 0 16 18" width="24" height="28" shape-rendering="crispEdges">
             <rect x="4" y="1" width="8" height="4" fill="#FF3B30" />
@@ -87,9 +83,6 @@ function getFallbackImage(category: string) {
   if (cat.includes('satay')) {
     return 'https://images.unsplash.com/photo-1529563021893-cc83c992d75d?auto=format&fit=crop&w=600&q=80';
   }
-  if (cat.includes('entertainment') || cat.includes('arcade')) {
-    return 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80';
-  }
   return 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80';
 }
 
@@ -104,15 +97,16 @@ function MapController({ center }: { center: [number, number] }) {
 
 export default function LeafletMapComponent({ places }: MapProps) {
   const router = useRouter();
-  const [userPos, setUserPos] = useState<[number, number]>([3.1292, 101.6784]); // Default: Bangsar
+  const [userPos, setUserPos] = useState<[number, number]>([3.1292, 101.6784]); 
+  
+  // 🎮 NEW STATE: 3D Toggle
+  const [is3D, setIs3D] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setUserPos([pos.coords.latitude, pos.coords.longitude]);
-        },
-        (err) => console.warn('GPS default to Bangsar:', err.message),
+        (pos) => setUserPos([pos.coords.latitude, pos.coords.longitude]),
+        (err) => console.warn('GPS default to KL:', err.message),
         { enableHighAccuracy: true, timeout: 5000 }
       );
     }
@@ -129,93 +123,97 @@ export default function LeafletMapComponent({ places }: MapProps) {
   }
 
   return (
-    <div className="w-full h-full relative">
-      {/* 🚀 ADDED .map-3d-wrapper HERE */}
-      <div className="map-3d-wrapper">
-        <MapContainer
-          center={userPos}
-          zoom={14}
-          zoomControl={false}
-          attributionControl={false}
-          className="w-full h-full"
-        >
-          <TileLayer 
-            url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
-            maxZoom={19}
-          />
+    <div className={`w-full h-full relative overflow-hidden ${is3D ? 'map-3d-active' : ''}`}>
+      
+      {/* Map Container */}
+      <MapContainer
+        center={userPos}
+        zoom={14}
+        zoomControl={false}
+        attributionControl={false}
+        className="w-full h-full transition-transform duration-500"
+      >
+        <TileLayer 
+          url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+          maxZoom={19}
+        />
+        <MapController center={userPos} />
 
-          <MapController center={userPos} />
+        {/* User Marker */}
+        <Marker position={userPos} icon={createUserTrainerIcon()}>
+          <Popup className="bauhaus-leaflet-popup font-baloo font-bold" closeButton={false}>
+            <div className="bg-bau-black text-bau-yellow border-2 border-bau-yellow rounded-xl px-3 py-1.5 shadow-bau text-xs text-center">
+              📍 You are here!
+            </div>
+          </Popup>
+        </Marker>
 
-          {/* 👤 Live User GPS Trainer Marker */}
-          <Marker position={userPos} icon={createUserTrainerIcon()}>
-            <Popup className="bauhaus-leaflet-popup font-baloo font-bold" closeButton={false}>
-              <div className="bg-bau-black text-bau-yellow border-2 border-bau-yellow rounded-xl px-3 py-1.5 shadow-bau text-xs text-center">
-                📍 You are here, Trainer!
-              </div>
-            </Popup>
-          </Marker>
+        {/* Places */}
+        {places.map((place) => {
+          const coverImg = getFallbackImage(place.category || '');
+          const safeTier = place.current_tier || 'mamadei';
+          const ratingDef = RATING_TIERS[safeTier] || RATING_TIERS['mamadei'];
+          const officialBadge = place.is_requested ? '🎯 Requested' : `${ratingDef.emoji} ${ratingDef.label}`;
 
-          {/* 📍 Curated Food Hunter Spots */}
-          {places.map((place) => {
-            const coverImg = getFallbackImage(place.category || '');
-            const safeTier = place.current_tier || 'mamadei';
-            const ratingDef = RATING_TIERS[safeTier] || RATING_TIERS['mamadei'];
-            const officialBadge = place.is_requested ? '🎯 Requested' : `${ratingDef.emoji} ${ratingDef.label}`;
-
-            return (
-              <Marker
-                key={place.id}
-                position={[Number(place.lat), Number(place.lng)]}
-                icon={createPinIcon(place.current_tier, place.is_requested)}
-              >
-                <Popup className="bauhaus-leaflet-popup" closeButton={false}>
-                  <div className="w-[230px] bg-bau-cream border-[2.5px] border-bau-black rounded-2xl overflow-hidden shadow-bau select-none">
-                    <div className="h-24 w-full relative overflow-hidden bg-gray-950 border-b-2 border-bau-black">
-                      <img src={coverImg} alt={place.name} className="w-full h-full object-cover" />
-                      <div className="absolute top-2 right-2 bg-bau-cream border-[1.5px] border-bau-black rounded-full px-2 py-0.5 font-baloo font-extrabold text-[10px] shadow-bau-sm text-bau-black">
-                        {place.price_level || '💰💰'}
-                      </div>
-                      <div className="absolute bottom-1.5 left-2 bg-black/60 backdrop-blur-sm text-white font-semibold text-[9px] px-2 py-0.5 rounded-md">
-                        📍 {place.area || 'Klang Valley'}
-                      </div>
-                    </div>
-                    <div className="p-3">
-                      <h3 className="font-baloo font-extrabold text-sm leading-tight text-bau-black truncate">{place.name}</h3>
-                      <div className="text-[10px] text-gray-500 font-semibold truncate mb-2">{place.category}</div>
-                      <div className="grid grid-cols-2 gap-1.5 mb-2">
-                        <div className="bg-[#191B28] text-white p-1.5 rounded-lg border border-bau-black">
-                          <span className="block text-[8px] font-space tracking-wider uppercase text-bau-yellow font-bold">Official</span>
-                          <span className="font-baloo font-extrabold text-[11px] truncate block">{officialBadge}</span>
-                        </div>
-                        <div className="bg-white p-1.5 rounded-lg border border-bau-black text-bau-black">
-                          <span className="block text-[8px] font-space tracking-wider text-gray-500 font-bold uppercase">Hunters</span>
-                          <span className="font-baloo font-extrabold text-[11px] block text-bau-red">★ 4.8</span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => router.push(`/places/${place.id}`)}
-                        className="w-full bg-bau-black text-bau-cream border-[2px] border-bau-black py-2 rounded-xl font-baloo font-extrabold text-xs shadow-bau-sm active:translate-x-0.5 active:translate-y-0.5 transition-transform"
-                      >
-                        View Full Verdict →
-                      </button>
+          return (
+            <Marker key={place.id} position={[Number(place.lat), Number(place.lng)]} icon={createPinIcon(place.current_tier, place.is_requested)}>
+              <Popup className="bauhaus-leaflet-popup" closeButton={false}>
+                <div className="w-[230px] bg-bau-cream border-[2.5px] border-bau-black rounded-2xl overflow-hidden shadow-bau select-none">
+                  <div className="h-24 w-full relative overflow-hidden bg-gray-950 border-b-2 border-bau-black">
+                    <img src={coverImg} alt={place.name} className="w-full h-full object-cover" />
+                    <div className="absolute top-2 right-2 bg-bau-cream border-[1.5px] border-bau-black rounded-full px-2 py-0.5 font-baloo font-extrabold text-[10px] shadow-bau-sm text-bau-black">
+                      {place.price_level || '💰💰'}
                     </div>
                   </div>
-                </Popup>
-              </Marker>
-            );
-          })}
-        </MapContainer>
-      </div>
+                  <div className="p-3">
+                    <h3 className="font-baloo font-extrabold text-sm leading-tight text-bau-black truncate">{place.name}</h3>
+                    <div className="text-[10px] text-gray-500 font-semibold truncate mb-2">{place.category}</div>
+                    
+                    <div className="grid grid-cols-2 gap-1.5 mb-2">
+                      <div className="bg-[#191B28] text-white p-1.5 rounded-lg border border-bau-black">
+                        <span className="block text-[8px] font-space tracking-wider uppercase text-bau-yellow font-bold">Official</span>
+                        <span className="font-baloo font-extrabold text-[11px] truncate block">{officialBadge}</span>
+                      </div>
+                      <div className="bg-white p-1.5 rounded-lg border border-bau-black text-bau-black">
+                        <span className="block text-[8px] font-space tracking-wider text-gray-500 font-bold uppercase">Hunters</span>
+                        <span className="font-baloo font-extrabold text-[11px] block text-bau-red">★ 4.8</span>
+                      </div>
+                    </div>
 
-      {/* Floating GPS Recenter button (📍) kept safely ABOVE the 3D wrapper */}
+                    <button
+                      onClick={() => router.push(`/places/${place.id}`)}
+                      className="w-full bg-bau-black text-bau-cream border-[2px] border-bau-black py-2 rounded-xl font-baloo font-extrabold text-xs shadow-bau-sm active:translate-x-0.5 active:translate-y-0.5 transition-transform"
+                    >
+                      View Verdict →
+                    </button>
+                  </div>
+                </div>
+              </Popup>
+            </Marker>
+          );
+        })}
+      </MapContainer>
+
+      {/* 🎮 3D TOGGLE BUTTON */}
+      <button
+        type="button"
+        onClick={() => setIs3D(!is3D)}
+        className="absolute bottom-20 left-3.5 z-[1000] w-11 h-11 rounded-full bg-bau-blue text-white border-[2.5px] border-bau-black shadow-bau flex items-center justify-center font-space font-bold text-sm active:translate-x-0.5 active:translate-y-0.5 transition-transform"
+        title="Toggle 3D View"
+      >
+        {is3D ? '2D' : '3D'}
+      </button>
+
+      {/* 📍 GPS RECENTER BUTTON */}
       <button
         type="button"
         onClick={locateMe}
-        className="absolute bottom-5 left-3.5 z-[1000] w-11 h-11 rounded-full bg-bau-cream border-[2.5px] border-bau-black shadow-bau flex items-center justify-center text-lg active:translate-x-0.5 active:translate-y-0.5 transition-transform"
+        className="absolute bottom-5 left-3.5 z-[1000] w-11 h-11 rounded-full bg-bau-cream text-bau-black border-[2.5px] border-bau-black shadow-bau flex items-center justify-center text-lg active:translate-x-0.5 active:translate-y-0.5 transition-transform"
         title="Recenter GPS"
       >
         📍
       </button>
+
     </div>
   );
 }

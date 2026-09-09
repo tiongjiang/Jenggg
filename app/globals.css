@@ -103,16 +103,50 @@ body {
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 25%);
 }
 
-/* 📍 Counter-tilt the pins and trainer so they stand up straight */
-.bauhaus-pin, 
-.user-trainer-sprite {
-  transform: rotateX(-45deg);
+/* 📍 Counter-tilt the pins and trainer so they stand up straight in 3D */
+.map-3d-active .custom-pin, 
+.map-3d-active .user-trainer-marker {
+  transform: rotateX(-45deg) !important;
   transform-origin: bottom center;
-  transition: transform 0.2s ease-out;
+  transition: transform 0.4s ease-in-out;
 }
 
 /* 📍 Counter-tilt the popup cards so they face the camera perfectly */
-.leaflet-popup {
+.map-3d-active .leaflet-popup {
   transform: rotateX(-45deg) !important;
   transform-origin: bottom center;
+  transition: transform 0.4s ease-in-out;
+}
+
+
+/* =========================================
+   🎮 3D MAP PERSPECTIVE TOGGLE STYLES
+   ========================================= */
+
+/* The 3D camera wrapper */
+.map-3d-active {
+  perspective: 1200px;
+  background: #A6C2EB; /* Horizon sky color behind the map */
+}
+
+/* Tilt the entire Leaflet map backward */
+.map-3d-active .leaflet-container {
+  transform: rotateX(45deg) scale(1.4) translateY(-5%);
+  transform-style: preserve-3d;
+  transition: transform 0.4s ease-in-out;
+}
+
+/* 📍 Counter-tilt the pins and trainer so they stand up straight in 3D */
+.map-3d-active .custom-pin, 
+.map-3d-active .user-trainer-marker {
+  transform: rotateX(-45deg) !important;
+  transform-origin: bottom center;
+  transition: transform 0.4s ease-in-out;
+}
+
+/* 📍 Counter-tilt the popup cards so they face the camera perfectly */
+.map-3d-active .leaflet-popup {
+  transform: rotateX(-45deg) !important;
+  transform-origin: bottom center;
+  transition: transform 0.4s ease-in-out;
 }
