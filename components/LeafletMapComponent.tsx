@@ -12,25 +12,34 @@ interface MapProps {
   places: Place[];
 }
 
-function createPinIcon(tier: string | null, isRequested: boolean) {
-  const isReq = Boolean(isRequested);
-  const safeTier = tier || 'mamadei';
-  const tierClass = isReq ? 'pin-requested' : `pin-${safeTier}`;
-
+// 📌 UPGRADED: Double-Decker Pin (Name + Rating)
+function createPinIcon(place: Place) {
+  const isReq = Boolean(place.is_requested);
+  const safeTier = place.current_tier || 'mamadei';
+  
   const ratingDef = RATING_TIERS[safeTier] || RATING_TIERS['mamadei'];
   const label = isReq ? '🎯 Requested' : `${ratingDef.emoji} ${ratingDef.label}`;
+  const bgColor = isReq ? '#FFFFFF' : ratingDef.bgHex;
 
+  // We use inline styles here to guarantee the map renders them instantly without Tailwind purging issues
   return L.divIcon({
-    className: 'custom-pin transition-transform duration-300',
+    className: 'custom-pin',
     html: `
-      <div class="bauhaus-pin ${tierClass}">
-        <div class="pin-badge" style="background-color: ${isReq ? '#FFFFFF' : ratingDef.bgHex}; color: #141416;">${label}</div>
-        <div class="pin-stem" style="background-color: ${isReq ? '#FFFFFF' : ratingDef.bgHex};"></div>
+      <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+        <div style="display: flex; flex-direction: column; align-items: center; border: 2.5px solid #141416; border-radius: 12px; overflow: hidden; box-shadow: 2px 2px 0px #141416; background: #FFFDF7;">
+          <div style="font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 11px; color: #141416; padding: 3px 8px; max-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; width: 100%;">
+            ${place.name}
+          </div>
+          <div style="width: 100%; border-top: 2.5px solid #141416; font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 10px; padding: 2px 8px; text-align: center; background-color: ${bgColor}; color: #141416;">
+            ${label}
+          </div>
+        </div>
+        <div style="width: 10px; height: 10px; transform: rotate(45deg); border-right: 2.5px solid #141416; border-bottom: 2.5px solid #141416; background-color: ${bgColor}; margin-top: -5px; box-shadow: 1.5px 1.5px 0px rgba(20,20,22,0.5);"></div>
       </div>
     `,
-    iconSize: [80, 42],
-    iconAnchor: [40, 42],
-    popupAnchor: [0, -42],
+    iconSize: [140, 55],
+    iconAnchor: [70, 55],
+    popupAnchor: [0, -60], // 🚀 FIX: Pushes the popup 60px UP so it floats beautifully above the pin!
   });
 }
 
@@ -66,23 +75,17 @@ function createUserTrainerIcon() {
     `,
     iconSize: [44, 44],
     iconAnchor: [22, 38],
+    popupAnchor: [0, -45], // Pushes Trainer popup up
   });
 }
 
 function getFallbackImage(category: string) {
   const cat = category.toLowerCase();
-  if (cat.includes('nasi') || cat.includes('kandar') || cat.includes('street')) {
-    return 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80';
-  }
-  if (cat.includes('burger')) {
-    return 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80';
-  }
-  if (cat.includes('bbq') || cat.includes('mookata')) {
-    return 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=600&q=80';
-  }
-  if (cat.includes('satay')) {
-    return 'https://images.unsplash.com/photo-1529563021893-cc83c992d75d?auto=format&fit=crop&w=600&q=80';
-  }
+  if (cat.includes('nasi') || cat.includes('kandar') || cat.includes('street')) return 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80';
+  if (cat.includes('burger')) return 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80';
+  if (cat.includes('bbq') || cat.includes('mookata')) return 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=600&q=80';
+  if (cat.includes('satay')) return 'https://images.unsplash.com/photo-1529563021893-cc83c992d75d?auto=format&fit=crop&w=600&q=80';
+  if (cat.includes('entertainment') || cat.includes('arcade')) return 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80';
   return 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80';
 }
 
@@ -98,9 +101,6 @@ function MapController({ center }: { center: [number, number] }) {
 export default function LeafletMapComponent({ places }: MapProps) {
   const router = useRouter();
   const [userPos, setUserPos] = useState<[number, number]>([3.1292, 101.6784]); 
-  
-  // 🎮 NEW STATE: 3D Toggle
-  const [is3D, setIs3D] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'geolocation' in navigator) {
@@ -123,15 +123,15 @@ export default function LeafletMapComponent({ places }: MapProps) {
   }
 
   return (
-    <div className={`w-full h-full relative overflow-hidden ${is3D ? 'map-3d-active' : ''}`}>
+    <div className="w-full h-full relative overflow-hidden">
       
-      {/* Map Container */}
+      {/* 2D Map Container */}
       <MapContainer
         center={userPos}
         zoom={14}
         zoomControl={false}
         attributionControl={false}
-        className="w-full h-full transition-transform duration-500"
+        className="w-full h-full"
       >
         <TileLayer 
           url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
@@ -156,7 +156,7 @@ export default function LeafletMapComponent({ places }: MapProps) {
           const officialBadge = place.is_requested ? '🎯 Requested' : `${ratingDef.emoji} ${ratingDef.label}`;
 
           return (
-            <Marker key={place.id} position={[Number(place.lat), Number(place.lng)]} icon={createPinIcon(place.current_tier, place.is_requested)}>
+            <Marker key={place.id} position={[Number(place.lat), Number(place.lng)]} icon={createPinIcon(place)}>
               <Popup className="bauhaus-leaflet-popup" closeButton={false}>
                 <div className="w-[230px] bg-bau-cream border-[2.5px] border-bau-black rounded-2xl overflow-hidden shadow-bau select-none">
                   <div className="h-24 w-full relative overflow-hidden bg-gray-950 border-b-2 border-bau-black">
@@ -193,16 +193,6 @@ export default function LeafletMapComponent({ places }: MapProps) {
           );
         })}
       </MapContainer>
-
-      {/* 🎮 3D TOGGLE BUTTON */}
-      <button
-        type="button"
-        onClick={() => setIs3D(!is3D)}
-        className="absolute bottom-20 left-3.5 z-[1000] w-11 h-11 rounded-full bg-bau-blue text-white border-[2.5px] border-bau-black shadow-bau flex items-center justify-center font-space font-bold text-sm active:translate-x-0.5 active:translate-y-0.5 transition-transform"
-        title="Toggle 3D View"
-      >
-        {is3D ? '2D' : '3D'}
-      </button>
 
       {/* 📍 GPS RECENTER BUTTON */}
       <button
