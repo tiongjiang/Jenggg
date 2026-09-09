@@ -1,122 +1,160 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 
-interface SaoDrawerProps {
+interface SaoMenuProps {
   isOpen: boolean;
   onClose: () => void;
   currentFilter: string;
   onSelectFilter: (filter: string) => void;
 }
 
-export const SaoDrawer: React.FC<SaoDrawerProps> = ({
+interface MenuItem {
+  id: string;
+  title: string;
+  icon: string;
+  subItems: { id: string; label: string; icon: string }[];
+}
+
+export const SaoDrawer: React.FC<SaoMenuProps> = ({
   isOpen,
   onClose,
   currentFilter,
   onSelectFilter,
 }) => {
-  const ratingOptions = [
-    { id: 'all', label: 'All Places', icon: '🌐' },
-    { id: 'jengggg', label: '🔥 Jengggg Only', icon: '⭐' },
-    { id: 'hociakk', label: '🤤 Hociakk Only', icon: '⭐' },
-    { id: 'requested', label: '🎯 Requested Queue', icon: '🎯' },
+  const [activeCategory, setActiveCategory] = useState<string>('tiers');
+
+  // Authentic SAO Main Categories & Sub-items
+  const menuData: MenuItem[] = [
+    {
+      id: 'tiers',
+      title: 'Rating Tiers',
+      icon: '⭐',
+      subItems: [
+        { id: 'all', label: 'All Places', icon: '🌐' },
+        { id: 'jengggg', label: 'Jengggg (5★)', icon: '🔥' },
+        { id: 'hociakk', label: 'Hociakk (4★)', icon: '🤤' },
+        { id: 'mamadei', label: 'Ma Ma Dei (3★)', icon: '😐' },
+        { id: 'hmmm', label: 'Hmmm (2★)', icon: '🤨' },
+      ],
+    },
+    {
+      id: 'categories',
+      title: 'Food Category',
+      icon: '🍜',
+      subItems: [
+        { id: 'cat:street', label: 'Street Food & Hawkers', icon: '🥢' },
+        { id: 'cat:restaurant', label: 'Restaurants & BBQ', icon: '🥩' },
+        { id: 'cat:cafe', label: 'Kopitiam & Cafes', icon: '☕' },
+        { id: 'cat:entertainment', label: 'Entertainment & Fun', icon: '🎮' },
+      ],
+    },
+    {
+      id: 'hunts',
+      title: 'Community Hunts',
+      icon: '🎯',
+      subItems: [
+        { id: 'requested', label: 'Most-Requested Queue', icon: '🔥' },
+        { id: 'all', label: 'Reset All Filters', icon: '↺' },
+      ],
+    },
   ];
 
-  const categoryOptions = [
-    { id: 'cat:street', label: '🍜 Street & Hawker', icon: '🥢' },
-    { id: 'cat:restaurant', label: '🍽️ Restaurants & BBQ', icon: '🥩' },
-    { id: 'cat:cafe', label: '☕ Kopitiam & Cafes', icon: '🧋' },
-    { id: 'cat:entertainment', label: '🎮 Entertainment & Fun', icon: '🕹️' },
-  ];
+  const currentCategoryData = menuData.find((m) => m.id === activeCategory);
+
+  if (!isOpen) return null;
 
   return (
     <>
+      {/* Dimmed Backdrop */}
       <div
         onClick={onClose}
-        className={`absolute inset-0 bg-[#0A0C14]/60 backdrop-blur-[2px] z-50 transition-opacity duration-300 ${
-          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
+        className="absolute inset-0 bg-black/45 backdrop-blur-[1.5px] z-50 transition-opacity"
       />
 
-      <div
-        className={`sao-clip-panel absolute top-0 bottom-0 right-0 w-[260px] bg-sao-dark border-l-2 border-sao-cyan shadow-sao z-50 p-5 pt-12 transition-transform duration-300 ease-out flex flex-col overflow-y-auto ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
-      >
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 w-7 h-7 rounded-full bg-sao-cyan/20 border border-sao-cyan text-sao-cyan flex items-center justify-center font-bold text-xs hover:bg-sao-cyan hover:text-bau-black transition-colors"
-        >
-          ✕
-        </button>
+      {/* SAO Floating Menu Container */}
+      <div className="absolute top-[160px] right-3 z-50 flex items-start gap-3 select-none pointer-events-auto">
+        
+        {/* 1. HORIZONTAL SLIDE-OUT SUB-MENU PANEL (Opens to the left of circular icons) */}
+        {currentCategoryData && (
+          <div className="bg-white/95 backdrop-blur-md border-[2px] border-[#D1D5DB] rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.35)] p-3 w-[190px] animate-in fade-in slide-in-from-right-4 duration-200">
+            {/* SAO Sub-panel Header */}
+            <div className="flex items-center gap-1.5 pb-2 mb-2 border-b border-gray-200">
+              <span className="w-2 h-2 bg-[#FF9500] rotate-45 inline-block shadow-[0_0_6px_#FF9500]" />
+              <span className="font-space font-bold text-[11px] uppercase tracking-wider text-gray-700">
+                {currentCategoryData.title}
+              </span>
+            </div>
 
-        {/* Ratings Section */}
-        <div className="flex items-center gap-2 pb-2 mb-3 border-b border-sao-cyan/30">
-          <div className="w-2.5 h-2.5 bg-sao-cyan rotate-45 shadow-[0_0_8px_#56E2FF]" />
-          <h3 className="font-space font-bold text-[11px] tracking-widest text-[#D6F6FF] uppercase">
-            Rating Tiers
-          </h3>
-        </div>
+            {/* Sub-items List with Diamond Bullets */}
+            <div className="flex flex-col gap-1.5">
+              {currentCategoryData.subItems.map((sub) => {
+                const isSelected = currentFilter === sub.id;
+                return (
+                  <button
+                    key={sub.id}
+                    onClick={() => {
+                      onSelectFilter(sub.id);
+                      onClose();
+                    }}
+                    className={`flex items-center justify-between p-2 rounded-xl text-left text-xs font-semibold transition-all ${
+                      isSelected
+                        ? 'bg-[#FF9500] text-white shadow-[0_2px_8px_rgba(255,149,0,0.45)]'
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 truncate">
+                      <span className="text-[10px] text-gray-400 group-hover:text-white">◆</span>
+                      <span className="truncate">{sub.label}</span>
+                    </div>
+                    <span className="text-sm shrink-0">{sub.icon}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
-        <div className="flex flex-col gap-2 mb-5">
-          {ratingOptions.map((opt) => {
-            const isActive = currentFilter === opt.id;
+        {/* 2. VERTICAL COLUMN OF METALLIC CIRCULAR NODES */}
+        <div className="flex flex-col gap-3 items-center">
+          {menuData.map((menu) => {
+            const isActive = activeCategory === menu.id;
             return (
               <button
-                key={opt.id}
-                onClick={() => {
-                  onSelectFilter(opt.id);
-                  onClose();
-                }}
-                className={`flex items-center justify-between p-2.5 rounded-lg text-xs font-semibold tracking-wide border transition-all ${
+                key={menu.id}
+                onClick={() => setActiveCategory(menu.id)}
+                className={`w-[48px] h-[48px] rounded-full flex items-center justify-center transition-all duration-200 relative ${
                   isActive
-                    ? 'bg-gradient-to-r from-sao-cyan/40 to-bau-blue/40 border-sao-cyan text-white shadow-sao'
-                    : 'bg-sao-cyan/10 border-sao-cyan/20 text-[#E8F8FF] hover:border-sao-cyan/60'
+                    ? 'scale-110 shadow-[0_0_16px_#FF9500] border-[2.5px] border-[#FF9500] bg-white'
+                    : 'bg-gradient-to-b from-[#FFFFFF] to-[#D8DCE3] border-[2px] border-[#9CA3AF] shadow-[0_4px_12px_rgba(0,0,0,0.25)] hover:scale-105'
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <span>{opt.icon}</span>
-                  <span>{opt.label}</span>
+                {/* Outer metallic bevel ring */}
+                <div
+                  className={`w-[36px] h-[36px] rounded-full flex items-center justify-center ${
+                    isActive ? 'bg-[#FFF3E0]' : 'bg-[#E5E7EB]'
+                  }`}
+                >
+                  <span className="text-xl">{menu.icon}</span>
                 </div>
-                {isActive && <span className="text-sao-cyan font-bold">●</span>}
+
+                {/* Little glowing indicator on active node */}
+                {isActive && (
+                  <div className="absolute -left-1.5 w-2 h-2 rounded-full bg-[#FF9500] shadow-[0_0_6px_#FF9500]" />
+                )}
               </button>
             );
           })}
+
+          {/* Close Circular Button */}
+          <button
+            onClick={onClose}
+            className="w-[36px] h-[36px] rounded-full bg-[#1F2937] border-2 border-[#4B5563] text-gray-300 flex items-center justify-center font-bold text-xs shadow-md active:scale-95 hover:bg-red-600 hover:border-red-500 hover:text-white transition-colors"
+          >
+            ✕
+          </button>
         </div>
 
-        {/* Categories Section */}
-        <div className="flex items-center gap-2 pb-2 mb-3 border-b border-sao-cyan/30">
-          <div className="w-2.5 h-2.5 bg-bau-yellow rotate-45 shadow-[0_0_8px_#FFCC00]" />
-          <h3 className="font-space font-bold text-[11px] tracking-widest text-[#FFF2B2] uppercase">
-            Categories
-          </h3>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          {categoryOptions.map((opt) => {
-            const isActive = currentFilter === opt.id;
-            return (
-              <button
-                key={opt.id}
-                onClick={() => {
-                  onSelectFilter(opt.id);
-                  onClose();
-                }}
-                className={`flex items-center justify-between p-2.5 rounded-lg text-xs font-semibold tracking-wide border transition-all ${
-                  isActive
-                    ? 'bg-gradient-to-r from-bau-yellow/30 to-bau-red/30 border-bau-yellow text-white shadow-sao'
-                    : 'bg-white/5 border-white/10 text-[#E8F8FF] hover:border-white/40'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span>{opt.icon}</span>
-                  <span>{opt.label}</span>
-                </div>
-                {isActive && <span className="text-bau-yellow font-bold">●</span>}
-              </button>
-            );
-          })}
-        </div>
       </div>
     </>
   );

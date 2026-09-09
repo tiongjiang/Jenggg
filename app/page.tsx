@@ -6,45 +6,49 @@ import { useRouter } from 'next/navigation';
 import { supabase, Place } from '@/lib/supabase';
 import { TrainerBoy } from '@/components/TrainerBoy';
 import { SaoDrawer } from '@/components/SaoDrawer';
-import { BottomNav } from '@/components/BottomNav';
 
-// Dynamic import to avoid SSR issues with Leaflet
+// Dynamically import Leaflet map to avoid server-side rendering issues
 const LeafletMap = dynamic(() => import('@/components/LeafletMapComponent'), { ssr: false });
 
 export default function HomePage() {
   const router = useRouter();
   const [places, setPlaces] = useState<Place[]>([]);
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [isSaoOpen, setIsSaoOpen] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<string>('all');
+  const [isSaoOpen, setIsSaoOpen] = useState<boolean>(false);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
     async function loadPlaces() {
       const { data, error } = await supabase.from('places').select('*');
-      if (!error && data) setPlaces(data as Place[]);
+      if (!error && data) {
+        setPlaces(data as Place[]);
+      }
     }
     loadPlaces();
   }, []);
 
+  // Filter places based on SAO filter and search input
   const filteredPlaces = places.filter((p) => {
     let matchesFilter = true;
 
     if (activeFilter === 'all') {
       matchesFilter = true;
     } else if (activeFilter === 'requested') {
-      matchesFilter = p.is_requested;
+      matchesFilter = Boolean(p.is_requested);
     } else if (activeFilter.startsWith('cat:')) {
       const catKey = activeFilter.replace('cat:', '').toLowerCase();
-      matchesFilter = p.category.toLowerCase().includes(catKey);
+      matchesFilter = p.category ? p.category.toLowerCase().includes(catKey) : false;
     } else {
       matchesFilter = p.current_tier === activeFilter;
     }
 
+    const q = searchQuery.toLowerCase().trim();
     const matchesSearch =
-      !searchQuery ||
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (p.area && p.area.toLowerCase().includes(searchQuery.toLowerCase()));
+      !q ||
+      (p.name && p.name.toLowerCase().includes(q)) ||
+      (p.area && p.area.toLowerCase().includes(q)) ||
+      (p.category && p.category.toLowerCase().includes(q));
 
     return matchesFilter && matchesSearch;
   });
@@ -67,28 +71,46 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+
         <div className="pointer-events-auto bg-bau-yellow border-[2.5px] border-bau-black rounded-full px-3 py-1 font-baloo font-extrabold text-xs shadow-bau-sm">
           🔥 3-day streak
         </div>
       </div>
 
-      {/* Search Bar */}
+      {/* Clean Spacious Search Bar */}
       <div className="absolute top-[68px] left-3.5 right-3.5 z-30">
         <div className="bg-bau-cream border-[2.5px] border-bau-black rounded-2xl p-2.5 flex items-center gap-2.5 shadow-bau">
-        <div className="w-7 h-7 rounded-full bg-bau-yellow border-2 border-bau-black flex items-center justify-center text-xs shrink-0">
+          <div className="w-7 h-7 rounded-full bg-bau-yellow border-2 border-bau-black flex items-center justify-center text-xs shrink-0">
             🔍
+          </div>
+          <input
+            type="text"
+            placeholder="Search food, stalls, areas…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="border-none bg-transparent outline-none font-semibold text-xs text-bau-black flex-1"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="text-xs text-gray-500 font-bold px-1"
+            >
+              ✕
+            </button>
+          )}
         </div>
       </div>
 
-      {/* SAO Trigger Button */}
+      {/* SAO Menu Floating Trigger Orb */}
       <button
         onClick={() => setIsSaoOpen(true)}
-        className="sao-clip-tab absolute top-44 right-0 z-30 w-9 h-20 bg-gradient-to-br from-sao-cyan to-bau-blue text-white font-space font-bold text-[10px] flex items-center justify-center shadow-sao"
+        className="absolute top-44 right-3 z-30 w-11 h-11 rounded-full bg-gradient-to-b from-white to-[#D1D5DB] border-[2px] border-[#6B7280] shadow-[0_4px_12px_rgba(0,0,0,0.35)] flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+        title="Open SAO Filters"
       >
-        <span className="rotate-180 [writing-mode:vertical-rl] tracking-wider">FILTER</span>
+        <span className="text-xl">⚡</span>
       </button>
 
-      {/* SAO Drawer */}
+      {/* Authentic SAO Circular Node Menu & Sub-panel */}
       <SaoDrawer
         isOpen={isSaoOpen}
         onClose={() => setIsSaoOpen(false)}
@@ -101,16 +123,16 @@ export default function HomePage() {
         <LeafletMap places={filteredPlaces} onSelectPlace={setSelectedPlace} />
       </div>
 
-      {/* Floating Request Button */}
+      {/* Request Hunt Floating Action Button */}
       <button
         onClick={() => router.push('/request')}
-        className="absolute bottom-24 right-3.5 z-30 bg-bau-red text-white border-[2.5px] border-bau-black rounded-full py-2.5 px-4 font-baloo font-extrabold text-xs shadow-bau flex items-center gap-1.5 active:translate-x-0.5 active:translate-y-0.5"
+        className="absolute bottom-20 right-3.5 z-30 bg-bau-red text-white border-[2.5px] border-bau-black rounded-full py-2.5 px-4 font-baloo font-extrabold text-xs shadow-bau flex items-center gap-1.5 active:translate-x-0.5 active:translate-y-0.5"
       >
         <span>🎯</span>
         <span>Request Hunt</span>
       </button>
 
-      {/* Bottom Sheet Modal */}
+      {/* Bottom Sheet Place Preview */}
       {selectedPlace && (
         <>
           <div
@@ -125,7 +147,7 @@ export default function HomePage() {
               <span>{selectedPlace.price_level || '💰💰'}</span>
             </div>
             <div className="bg-white border-[2.5px] border-bau-black rounded-xl p-3 text-xs italic text-gray-700 shadow-bau-sm mb-4">
-              &quot;{selectedPlace.quote || 'No quote yet.'}&quot;
+              &quot;{selectedPlace.quote || 'No Hunter quote recorded yet.'}&quot;
             </div>
             <button
               onClick={() => router.push(`/places/${selectedPlace.id}`)}
@@ -136,9 +158,6 @@ export default function HomePage() {
           </div>
         </>
       )}
-
-      {/* Bottom Nav Bar */}
-      <BottomNav />
     </div>
   );
 }
