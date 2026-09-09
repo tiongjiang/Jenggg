@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { TrainerBoy } from '@/components/TrainerBoy';
-import { BottomNav } from '@/components/BottomNav';
 
 export default function ProfilePage() {
   const badges = [
@@ -69,8 +68,6 @@ export default function ProfilePage() {
           ))}
         </div>
       </div>
-
-      <BottomNav />
     </div>
   );
 }

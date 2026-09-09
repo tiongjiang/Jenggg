@@ -24,7 +24,6 @@ export const SaoDrawer: React.FC<SaoMenuProps> = ({
 }) => {
   const [activeCategory, setActiveCategory] = useState<string>('tiers');
 
-  // Authentic SAO Main Categories & Sub-items
   const menuData: MenuItem[] = [
     {
       id: 'tiers',
@@ -40,10 +39,10 @@ export const SaoDrawer: React.FC<SaoMenuProps> = ({
     },
     {
       id: 'categories',
-      title: 'Food Category',
+      title: 'Categories',
       icon: '🍜',
       subItems: [
-        { id: 'cat:street', label: 'Street Food & Hawkers', icon: '🥢' },
+        { id: 'cat:street', label: 'Street & Hawkers', icon: '🥢' },
         { id: 'cat:restaurant', label: 'Restaurants & BBQ', icon: '🥩' },
         { id: 'cat:cafe', label: 'Kopitiam & Cafes', icon: '☕' },
         { id: 'cat:entertainment', label: 'Entertainment & Fun', icon: '🎮' },
@@ -51,11 +50,11 @@ export const SaoDrawer: React.FC<SaoMenuProps> = ({
     },
     {
       id: 'hunts',
-      title: 'Community Hunts',
+      title: 'Hunt Bounties',
       icon: '🎯',
       subItems: [
         { id: 'requested', label: 'Most-Requested Queue', icon: '🔥' },
-        { id: 'all', label: 'Reset All Filters', icon: '↺' },
+        { id: 'all', label: 'Clear Filters', icon: '↺' },
       ],
     },
   ];
@@ -69,16 +68,14 @@ export const SaoDrawer: React.FC<SaoMenuProps> = ({
       {/* Dimmed Backdrop */}
       <div
         onClick={onClose}
-        className="absolute inset-0 bg-black/45 backdrop-blur-[1.5px] z-50 transition-opacity"
+        className="absolute inset-0 bg-black/50 backdrop-blur-[2px] z-50 transition-opacity duration-300"
       />
 
-      {/* SAO Floating Menu Container */}
-      <div className="absolute top-[160px] right-3 z-50 flex items-start gap-3 select-none pointer-events-auto">
-        
-        {/* 1. HORIZONTAL SLIDE-OUT SUB-MENU PANEL (Opens to the left of circular icons) */}
+      {/* SAO Floating Menu with Spring Slide-in Animation */}
+      <div className="absolute top-[140px] right-3 z-50 flex items-start gap-3 select-none pointer-events-auto">
+        {/* Horizontal Submenu Panel */}
         {currentCategoryData && (
-          <div className="bg-white/95 backdrop-blur-md border-[2px] border-[#D1D5DB] rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.35)] p-3 w-[190px] animate-in fade-in slide-in-from-right-4 duration-200">
-            {/* SAO Sub-panel Header */}
+          <div className="bg-white/95 backdrop-blur-md border-[2px] border-[#D1D5DB] rounded-2xl shadow-[0_12px_32px_rgba(0,0,0,0.35)] p-3 w-[190px] animate-in fade-in slide-in-from-right-5 duration-200 ease-out">
             <div className="flex items-center gap-1.5 pb-2 mb-2 border-b border-gray-200">
               <span className="w-2 h-2 bg-[#FF9500] rotate-45 inline-block shadow-[0_0_6px_#FF9500]" />
               <span className="font-space font-bold text-[11px] uppercase tracking-wider text-gray-700">
@@ -86,13 +83,13 @@ export const SaoDrawer: React.FC<SaoMenuProps> = ({
               </span>
             </div>
 
-            {/* Sub-items List with Diamond Bullets */}
             <div className="flex flex-col gap-1.5">
               {currentCategoryData.subItems.map((sub) => {
                 const isSelected = currentFilter === sub.id;
                 return (
                   <button
                     key={sub.id}
+                    type="button"
                     onClick={() => {
                       onSelectFilter(sub.id);
                       onClose();
@@ -104,7 +101,7 @@ export const SaoDrawer: React.FC<SaoMenuProps> = ({
                     }`}
                   >
                     <div className="flex items-center gap-2 truncate">
-                      <span className="text-[10px] text-gray-400 group-hover:text-white">◆</span>
+                      <span className="text-[10px] text-gray-400">◆</span>
                       <span className="truncate">{sub.label}</span>
                     </div>
                     <span className="text-sm shrink-0">{sub.icon}</span>
@@ -115,21 +112,21 @@ export const SaoDrawer: React.FC<SaoMenuProps> = ({
           </div>
         )}
 
-        {/* 2. VERTICAL COLUMN OF METALLIC CIRCULAR NODES */}
-        <div className="flex flex-col gap-3 items-center">
+        {/* Vertical Column of Metallic Floating Nodes */}
+        <div className="flex flex-col gap-3 items-center animate-in fade-in slide-in-from-right-3 duration-200">
           {menuData.map((menu) => {
             const isActive = activeCategory === menu.id;
             return (
               <button
                 key={menu.id}
+                type="button"
                 onClick={() => setActiveCategory(menu.id)}
                 className={`w-[48px] h-[48px] rounded-full flex items-center justify-center transition-all duration-200 relative ${
                   isActive
                     ? 'scale-110 shadow-[0_0_16px_#FF9500] border-[2.5px] border-[#FF9500] bg-white'
-                    : 'bg-gradient-to-b from-[#FFFFFF] to-[#D8DCE3] border-[2px] border-[#9CA3AF] shadow-[0_4px_12px_rgba(0,0,0,0.25)] hover:scale-105'
+                    : 'bg-gradient-to-b from-[#FFFFFF] to-[#D8DCE3] border-[2px] border-[#9CA3AF] shadow-[0_4px_12px_rgba(0,0,0,0.25)] hover:scale-105 active:scale-95'
                 }`}
               >
-                {/* Outer metallic bevel ring */}
                 <div
                   className={`w-[36px] h-[36px] rounded-full flex items-center justify-center ${
                     isActive ? 'bg-[#FFF3E0]' : 'bg-[#E5E7EB]'
@@ -138,7 +135,6 @@ export const SaoDrawer: React.FC<SaoMenuProps> = ({
                   <span className="text-xl">{menu.icon}</span>
                 </div>
 
-                {/* Little glowing indicator on active node */}
                 {isActive && (
                   <div className="absolute -left-1.5 w-2 h-2 rounded-full bg-[#FF9500] shadow-[0_0_6px_#FF9500]" />
                 )}
@@ -148,13 +144,13 @@ export const SaoDrawer: React.FC<SaoMenuProps> = ({
 
           {/* Close Circular Button */}
           <button
+            type="button"
             onClick={onClose}
             className="w-[36px] h-[36px] rounded-full bg-[#1F2937] border-2 border-[#4B5563] text-gray-300 flex items-center justify-center font-bold text-xs shadow-md active:scale-95 hover:bg-red-600 hover:border-red-500 hover:text-white transition-colors"
           >
             ✕
           </button>
         </div>
-
       </div>
     </>
   );

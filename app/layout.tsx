@@ -5,6 +5,12 @@ import { BottomNav } from "@/components/BottomNav";
 export const metadata: Metadata = {
   title: "Jenggg — Food Hunter Game",
   description: "Explore, discover, and hunt authentic eateries across Malaysia.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Jenggg",
+  },
 };
 
 export const viewport: Viewport = {
@@ -13,6 +19,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
+  themeColor: "#FF3B30",
 };
 
 export default function RootLayout({
@@ -22,14 +29,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="apple-touch-icon" href="/icon-192.png" />
+      </head>
       <body className="flex justify-center bg-[#12131C] min-h-[100dvh]">
-        {/* Mobile viewport container locked to 100dvh */}
         <main className="w-full max-w-[480px] h-[100dvh] bg-bau-cream relative overflow-hidden flex flex-col shadow-2xl">
-          {/* Scrollable screen content */}
           <div className="flex-1 overflow-hidden relative flex flex-col">
             {children}
           </div>
-          {/* Always pinned to bottom */}
           <BottomNav />
         </main>
       </body>

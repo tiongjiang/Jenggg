@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase, Place, HuntRequest } from '@/lib/supabase';
-import { BottomNav } from '@/components/BottomNav';
 
 type RankingTab = 'restaurants' | 'streetfood' | 'entertainment' | 'requested';
 
@@ -275,8 +274,6 @@ export default function HuntAndRankingsPage() {
           + Request a Place for Review
         </button>
       </div>
-
-      <BottomNav />
     </div>
   );
 }

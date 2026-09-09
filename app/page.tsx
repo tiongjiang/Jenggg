@@ -27,7 +27,6 @@ export default function HomePage() {
     loadPlaces();
   }, []);
 
-  // Filter places based on SAO filter and search input
   const filteredPlaces = places.filter((p) => {
     let matchesFilter = true;
 
@@ -71,8 +70,10 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="pointer-events-auto bg-bau-yellow border-[2.5px] border-bau-black rounded-full px-3 py-1 font-baloo font-extrabold text-xs shadow-bau-sm">
-          🔥 3-day streak
+        {/* Meaningful Location & Places Counter (Replaces meaningless 3-day streak) */}
+        <div className="pointer-events-auto bg-bau-yellow border-[2.5px] border-bau-black rounded-full px-3 py-1 font-baloo font-extrabold text-xs shadow-bau-sm flex items-center gap-1.5">
+          <span>📍</span>
+          <span>{places.length} Spots in KL</span>
         </div>
       </div>
 
@@ -91,6 +92,7 @@ export default function HomePage() {
           />
           {searchQuery && (
             <button
+              type="button"
               onClick={() => setSearchQuery('')}
               className="text-xs text-gray-500 font-bold px-1"
             >
@@ -100,16 +102,17 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* SAO Menu Floating Trigger Orb */}
+      {/* SAO Menu Floating Trigger (Authentic Hologram Hexagon Crystal) */}
       <button
+        type="button"
         onClick={() => setIsSaoOpen(true)}
-        className="absolute top-44 right-3 z-30 w-11 h-11 rounded-full bg-gradient-to-b from-white to-[#D1D5DB] border-[2px] border-[#6B7280] shadow-[0_4px_12px_rgba(0,0,0,0.35)] flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+        className="absolute top-44 right-3 z-30 w-11 h-11 rounded-full bg-gradient-to-b from-[#FFFFFF] to-[#D1D5DB] border-[2.5px] border-[#4B5563] shadow-[0_4px_14px_rgba(0,0,0,0.3)] flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
         title="Open SAO Filters"
       >
-        <span className="text-xl">⚡</span>
+        <span className="text-lg font-space font-extrabold text-[#1F2937]">⬡</span>
       </button>
 
-      {/* SAO Circular Node Menu */}
+      {/* SAO Menu Drawer */}
       <SaoDrawer
         isOpen={isSaoOpen}
         onClose={() => setIsSaoOpen(false)}
@@ -117,15 +120,16 @@ export default function HomePage() {
         onSelectFilter={setActiveFilter}
       />
 
-      {/* Interactive Map with In-Place Popups on Pins */}
+      {/* Interactive Map with In-Place Popups */}
       <div className="flex-1 w-full h-full relative z-10">
         <LeafletMap places={filteredPlaces} />
       </div>
 
       {/* Request Hunt Floating Action Button */}
       <button
+        type="button"
         onClick={() => router.push('/request')}
-        className="absolute bottom-6 right-3.5 z-30 bg-bau-red text-white border-[2.5px] border-bau-black rounded-full py-2.5 px-4 font-baloo font-extrabold text-xs shadow-bau flex items-center gap-1.5 active:translate-x-0.5 active:translate-y-0.5"
+        className="absolute bottom-6 right-3.5 z-30 bg-bau-red text-white border-[2.5px] border-bau-black rounded-full py-2.5 px-4 font-baloo font-extrabold text-xs shadow-bau flex items-center gap-1.5 active:translate-x-0.5 active:translate-y-0.5 transition-transform"
       >
         <span>🎯</span>
         <span>Request Hunt</span>
