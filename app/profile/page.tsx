@@ -1,9 +1,12 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { TrainerBoy } from '@/components/TrainerBoy';
 
 export default function ProfilePage() {
+  const router = useRouter();
+
   const badges = [
     { id: '1', name: 'Noodle Hunter', icon: '🍜', unlocked: true },
     { id: '2', name: 'Kopitiam Hero', icon: '☕', unlocked: true },
@@ -17,8 +20,18 @@ export default function ProfilePage() {
 
   return (
     <div className="flex-1 flex flex-col h-full bg-bau-cream overflow-hidden">
-      {/* Profile Header */}
-      <div className="bg-bau-blue text-white p-6 pt-10 border-b-[2.5px] border-bau-black text-center flex flex-col items-center">
+      {/* Profile Header with Safe Top Padding & Admin Link */}
+      <div className="bg-bau-blue text-white p-5 pt-[calc(env(safe-area-inset-top,44px)+16px)] border-b-[2.5px] border-bau-black text-center flex flex-col items-center shrink-0 relative">
+        
+        {/* Hidden/Sleek Admin Gear Link on Top Right */}
+        <button
+          onClick={() => router.push('/admin')}
+          className="absolute top-[calc(env(safe-area-inset-top,44px)+10px)] right-4 bg-white/20 hover:bg-white/35 text-white border border-white/20 p-2 rounded-xl text-xs flex items-center gap-1 font-baloo font-bold active:scale-95 transition-transform"
+          title="Access Admin Console"
+        >
+          ⚙️ Admin
+        </button>
+
         <div className="w-20 h-20 rounded-2xl bg-bau-yellow border-[2.5px] border-bau-black shadow-bau flex items-center justify-center mb-3">
           <div className="scale-150">
             <TrainerBoy />

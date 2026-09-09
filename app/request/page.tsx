@@ -33,8 +33,8 @@ export default function RequestHuntPage() {
       alert(`🎯 "${name}" submitted to the Hunt Queue!`);
       router.push('/hunt');
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      alert('Error submitting request: ' + errorMessage);
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      alert('Error submitting request: ' + msg);
     } finally {
       setSubmitting(false);
     }
@@ -43,10 +43,10 @@ export default function RequestHuntPage() {
   return (
     <div className="flex-1 flex flex-col h-full bg-bau-cream overflow-y-auto">
       {/* Header */}
-      <div className="bg-bau-red text-white p-5 pt-10 border-b-[2.5px] border-bau-black flex items-center gap-3">
+      <div className="bg-bau-red text-white p-5 pt-[calc(env(safe-area-inset-top,44px)+16px)] border-b-[2.5px] border-bau-black flex items-center gap-3 shrink-0">
         <button
           onClick={() => router.push('/')}
-          className="w-9 h-9 rounded-xl bg-bau-cream text-bau-black border-[2.5px] border-bau-black font-extrabold text-sm flex items-center justify-center shadow-bau-sm active:translate-x-0.5 active:translate-y-0.5"
+          className="w-9 h-9 rounded-xl bg-bau-cream text-bau-black border-[2.5px] border-bau-black font-extrabold text-sm flex items-center justify-center shadow-bau-sm"
         >
           ←
         </button>
