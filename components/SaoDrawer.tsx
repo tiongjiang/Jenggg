@@ -73,7 +73,7 @@ export const SaoDrawer: React.FC<SaoMenuProps> = ({
 
       {/* Slide Down/Up Container positioned directly below the top-right menu trigger */}
       <div
-        className={`absolute top-[168px] right-3.5 z-50 w-[210px] select-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-top ${
+        className={`absolute top-[calc(env(safe-area-inset-top,44px)+116px)] right-3.5 z-50 w-[210px] select-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-top ${
           isOpen
             ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto'
             : 'opacity-0 scale-95 -translate-y-3 pointer-events-none'
@@ -81,6 +81,7 @@ export const SaoDrawer: React.FC<SaoMenuProps> = ({
       >
         {/* SAO Frosted Glass Dropdown Card */}
         <div className="bg-white/95 backdrop-blur-md border-[2.5px] border-bau-black rounded-2xl shadow-bau overflow-hidden p-3 flex flex-col gap-2.5">
+          
           {/* Category Tabs: Rating (⭐), Category (🍜), Hunt (🎯) */}
           <div className="flex items-center justify-around bg-gray-100/90 p-1 rounded-xl border border-gray-300">
             {categories.map((cat) => {

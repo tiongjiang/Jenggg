@@ -7,7 +7,6 @@ import { supabase, Place } from '@/lib/supabase';
 import { TrainerBoy } from '@/components/TrainerBoy';
 import { SaoDrawer } from '@/components/SaoDrawer';
 
-// Dynamically import Leaflet map
 const LeafletMap = dynamic(() => import('@/components/LeafletMapComponent'), { ssr: false });
 
 export default function HomePage() {
@@ -53,8 +52,8 @@ export default function HomePage() {
 
   return (
     <div className="flex-1 flex flex-col relative h-full overflow-hidden">
-      {/* Top HUD */}
-      <div className="absolute top-4 left-3.5 right-3.5 z-30 flex items-center justify-between pointer-events-none">
+      {/* 1. Top HUD: Positioned below iPhone Notch / Dynamic Island */}
+      <div className="absolute top-[calc(env(safe-area-inset-top,44px)+8px)] left-3.5 right-3.5 z-30 flex items-center justify-between pointer-events-none">
         <div
           onClick={() => router.push('/profile')}
           className="pointer-events-auto flex items-center gap-2 bg-bau-cream border-[2.5px] border-bau-black shadow-bau-sm rounded-full py-1 px-3 cursor-pointer"
@@ -70,15 +69,15 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Meaningful Location & Places Counter (Replaces meaningless 3-day streak) */}
+        {/* Real Live Spots Counter */}
         <div className="pointer-events-auto bg-bau-yellow border-[2.5px] border-bau-black rounded-full px-3 py-1 font-baloo font-extrabold text-xs shadow-bau-sm flex items-center gap-1.5">
           <span>📍</span>
           <span>{places.length} Spots in KL</span>
         </div>
       </div>
 
-      {/* Clean Spacious Search Bar */}
-      <div className="absolute top-[68px] left-3.5 right-3.5 z-30">
+      {/* 2. Search Bar: Safe spacing below HUD */}
+      <div className="absolute top-[calc(env(safe-area-inset-top,44px)+58px)] left-3.5 right-3.5 z-30">
         <div className="bg-bau-cream border-[2.5px] border-bau-black rounded-2xl p-2.5 flex items-center gap-2.5 shadow-bau">
           <div className="w-7 h-7 rounded-full bg-bau-yellow border-2 border-bau-black flex items-center justify-center text-xs shrink-0">
             🔍
@@ -102,11 +101,11 @@ export default function HomePage() {
         </div>
       </div>
 
-            {/* SAO Metallic Filter Trigger Orb (Toggles Dropdown Underneath) */}
+      {/* 3. SAO Filter Toggle Button */}
       <button
         type="button"
         onClick={() => setIsSaoOpen(!isSaoOpen)}
-        className={`absolute top-28 right-3.5 z-50 w-11 h-11 rounded-full border-[2.5px] border-bau-black flex items-center justify-center transition-all duration-200 active:scale-95 ${
+        className={`absolute top-[calc(env(safe-area-inset-top,44px)+116px)] right-3.5 z-30 w-11 h-11 rounded-full border-[2.5px] border-bau-black flex items-center justify-center transition-all duration-200 active:scale-95 ${
           isSaoOpen
             ? 'bg-bau-yellow shadow-[0_0_16px_#FFCC00] scale-105'
             : 'bg-bau-cream shadow-bau hover:scale-105'
@@ -126,25 +125,16 @@ export default function HomePage() {
         onSelectFilter={setActiveFilter}
       />
 
-
-      {/* SAO Menu Drawer */}
-      <SaoDrawer
-        isOpen={isSaoOpen}
-        onClose={() => setIsSaoOpen(false)}
-        currentFilter={activeFilter}
-        onSelectFilter={setActiveFilter}
-      />
-
-      {/* Interactive Map with In-Place Popups */}
+      {/* 4. Interactive Map */}
       <div className="flex-1 w-full h-full relative z-10">
         <LeafletMap places={filteredPlaces} />
       </div>
 
-      {/* Request Hunt Floating Action Button */}
+      {/* 5. Request Hunt FAB */}
       <button
         type="button"
         onClick={() => router.push('/request')}
-        className="absolute bottom-6 right-3.5 z-30 bg-bau-red text-white border-[2.5px] border-bau-black rounded-full py-2.5 px-4 font-baloo font-extrabold text-xs shadow-bau flex items-center gap-1.5 active:translate-x-0.5 active:translate-y-0.5 transition-transform"
+        className="absolute bottom-5 right-3.5 z-30 bg-bau-red text-white border-[2.5px] border-bau-black rounded-full py-2.5 px-4 font-baloo font-extrabold text-xs shadow-bau flex items-center gap-1.5 active:translate-x-0.5 active:translate-y-0.5 transition-transform"
       >
         <span>🎯</span>
         <span>Request Hunt</span>

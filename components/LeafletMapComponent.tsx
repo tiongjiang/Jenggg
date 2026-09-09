@@ -1,14 +1,14 @@
 'use client';
 
-import React from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import React, { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { useRouter } from 'next/navigation';
 import { Place } from '@/lib/supabase';
+import { TrainerBoy } from './TrainerBoy';
 
 interface MapProps {
   places: Place[];
-  onSelectPlace?: (place: Place) => void;
 }
 
 function getRatingBadge(tier: string | null, isRequested: boolean) {
@@ -34,11 +34,48 @@ function createPinIcon(tier: string | null, isRequested: boolean) {
     `,
     iconSize: [80, 42],
     iconAnchor: [40, 42],
-    popupAnchor: [0, -42], // Anchors popup directly on top of the pin!
+    popupAnchor: [0, -42],
   });
 }
 
-// Sample Malaysian food banner illustrations for visual appeal
+// 2D Retro Pokémon Trainer Boy Marker for User Position
+function createUserTrainerIcon() {
+  return L.divIcon({
+    className: 'user-trainer-marker',
+    html: `
+      <div style="position:relative;width:44px;height:44px;display:flex;align-items:center;justify-content:center;">
+        <!-- Pulsing interaction reach halo -->
+        <div style="position:absolute;inset:-10px;border-radius:50%;background:rgba(255,204,0,0.35);animation:pulse 2s infinite;"></div>
+        <!-- Shadow -->
+        <div style="position:absolute;bottom:2px;width:24px;height:7px;border-radius:50%;background:rgba(0,0,0,0.4);"></div>
+        <!-- 2D Pokémon Boy Sprite -->
+        <div style="position:relative;z-index:2;transform:scale(1.2);">
+          <svg viewBox="0 0 16 18" width="24" height="28" shape-rendering="crispEdges">
+            <rect x="4" y="1" width="8" height="4" fill="#FF3B30" />
+            <rect x="3" y="4" width="11" height="2" fill="#FF3B30" />
+            <rect x="2" y="5" width="4" height="1" fill="#FFFFFF" />
+            <rect x="6" y="3" width="3" height="2" fill="#FFFFFF" />
+            <rect x="4" y="5" width="8" height="2" fill="#201C1B" />
+            <rect x="2" y="6" width="3" height="4" fill="#201C1B" />
+            <rect x="11" y="6" width="3" height="4" fill="#201C1B" />
+            <rect x="5" y="6" width="6" height="5" fill="#FFDFC4" />
+            <rect x="6" y="8" width="1" height="2" fill="#141416" />
+            <rect x="9" y="8" width="1" height="2" fill="#141416" />
+            <rect x="4" y="11" width="8" height="4" fill="#2251FF" />
+            <rect x="6" y="11" width="4" height="4" fill="#FF3B30" />
+            <rect x="6" y="11" width="4" height="1" fill="#FFFFFF" />
+            <rect x="5" y="15" width="6" height="2" fill="#3D405B" />
+            <rect x="4" y="17" width="3" height="1" fill="#FF3B30" />
+            <rect x="9" y="17" width="3" height="1" fill="#FF3B30" />
+          </svg>
+        </div>
+      </div>
+    `,
+    iconSize: [44, 44],
+    iconAnchor: [22, 38],
+  });
+}
+
 function getFallbackImage(category: string) {
   const cat = category.toLowerCase();
   if (cat.includes('nasi') || cat.includes('kandar') || cat.includes('street')) {
@@ -53,24 +90,65 @@ function getFallbackImage(category: string) {
   if (cat.includes('satay')) {
     return 'https://images.unsplash.com/photo-1529563021893-cc83c992d75d?auto=format&fit=crop&w=600&q=80';
   }
-  if (cat.includes('entertainment') || cat.includes('arcade')) {
-    return 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80';
-  }
   return 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80';
+}
+
+// Controller to smoothly center map on user GPS
+function LocationController({ userPos }: { userPos: [number, number] | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (userPos) {
+      map.setView(userPos, 14, { animate: true });
+    }
+  }, [userPos, map]);
+  return null;
 }
 
 export default function LeafletMapComponent({ places }: MapProps) {
   const router = useRouter();
+  // Default to Bangsar/KL coordinates
+  const [userPos, setUserPos] = useState<[number, number]>([3.1292, 101.6784]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserPos([pos.coords.latitude, pos.coords.longitude]);
+        },
+        (err) => {
+          console.warn('Geolocation default to KL:', err.message);
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    }
+  }, []);
 
   return (
     <MapContainer
-      center={[3.1292, 101.6784]}
+      center={userPos}
       zoom={13}
       zoomControl={false}
       attributionControl={false}
       className="w-full h-full"
     >
-      <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
+      {/* 🚀 Reliable, Free OpenStreetMap Tiles (No API Key Required, Fast Load) */}
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+        maxZoom={19}
+      />
+
+      <LocationController userPos={userPos} />
+
+      {/* 👤 User 2D Pokémon Trainer Marker */}
+      <Marker position={userPos} icon={createUserTrainerIcon()}>
+        <Popup className="bauhaus-leaflet-popup" closeButton={false}>
+          <div className="bg-bau-black text-bau-yellow px-3 py-1.5 rounded-xl border border-bau-yellow font-baloo font-extrabold text-xs shadow-bau text-center">
+            📍 You Are Here, Hunter!
+          </div>
+        </Popup>
+      </Marker>
+
+      {/* 📍 Food Hunter Spots */}
       {places.map((place) => {
         const coverImg = getFallbackImage(place.category || '');
         const officialTier = getRatingBadge(place.current_tier, place.is_requested);
@@ -81,26 +159,19 @@ export default function LeafletMapComponent({ places }: MapProps) {
             position={[Number(place.lat), Number(place.lng)]}
             icon={createPinIcon(place.current_tier, place.is_requested)}
           >
-            {/* IN-PLACE FLOATING POPUP CARD DIRECTLY OVER PIN */}
+            {/* Pop-up Card Over Pin */}
             <Popup className="bauhaus-leaflet-popup" closeButton={false}>
-              <div className="w-[240px] bg-bau-cream border-[2.5px] border-bau-black rounded-2xl overflow-hidden shadow-bau select-none">
-                
-                {/* 1. Header Cover Image with Price Tag */}
+              <div className="w-[230px] bg-bau-cream border-[2.5px] border-bau-black rounded-2xl overflow-hidden shadow-bau select-none">
                 <div className="h-24 w-full relative overflow-hidden bg-gray-900 border-b-2 border-bau-black">
-                  <img
-                    src={coverImg}
-                    alt={place.name}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-2 right-2 bg-bau-cream border-[1.5px] border-bau-black rounded-full px-2 py-0.5 font-baloo font-extrabold text-[10px] text-bau-black shadow-bau-sm">
+                  <img src={coverImg} alt={place.name} className="w-full h-full object-cover" />
+                  <div className="absolute top-2 right-2 bg-bau-cream border-[1.5px] border-bau-black rounded-full px-2 py-0.5 font-baloo font-extrabold text-[10px] shadow-bau-sm">
                     {place.price_level || '💰💰'}
                   </div>
-                  <div className="absolute bottom-1.5 left-2 bg-black/60 backdrop-blur-sm text-white font-medium text-[9px] px-2 py-0.5 rounded-md">
+                  <div className="absolute bottom-1.5 left-2 bg-black/60 backdrop-blur-sm text-white font-semibold text-[9px] px-2 py-0.5 rounded-md">
                     📍 {place.area || 'Klang Valley'}
                   </div>
                 </div>
 
-                {/* 2. Place Name & Category */}
                 <div className="p-3">
                   <h3 className="font-baloo font-extrabold text-sm leading-tight text-bau-black truncate">
                     {place.name}
@@ -109,9 +180,7 @@ export default function LeafletMapComponent({ places }: MapProps) {
                     {place.category}
                   </div>
 
-                  {/* 3. Official Rating vs Public Rating Side-by-Side */}
-                  <div className="grid grid-cols-2 gap-1.5 mb-2.5">
-                    {/* Official Rating */}
+                  <div className="grid grid-cols-2 gap-1.5 mb-2">
                     <div className="bg-[#191B28] text-white p-1.5 rounded-lg border border-bau-black">
                       <span className="block text-[8px] font-space tracking-wider uppercase text-bau-yellow font-bold">
                         Official
@@ -121,7 +190,6 @@ export default function LeafletMapComponent({ places }: MapProps) {
                       </span>
                     </div>
 
-                    {/* Public Rating */}
                     <div className="bg-white p-1.5 rounded-lg border border-bau-black text-bau-black">
                       <span className="block text-[8px] font-space tracking-wider uppercase text-gray-500 font-bold">
                         Hunters
@@ -132,12 +200,10 @@ export default function LeafletMapComponent({ places }: MapProps) {
                     </div>
                   </div>
 
-                  {/* 4. Short Description / Quote */}
-                  <p className="text-[11px] text-gray-700 italic line-clamp-2 leading-tight mb-3">
+                  <p className="text-[10.5px] text-gray-700 italic line-clamp-2 leading-tight mb-2.5">
                     &quot;{place.quote || place.description || 'Great spot discovered by the community!'}&quot;
                   </p>
 
-                  {/* 5. Button to Full Place Details */}
                   <button
                     onClick={() => router.push(`/places/${place.id}`)}
                     className="w-full bg-bau-black text-bau-cream border-[2px] border-bau-black py-2 rounded-xl font-baloo font-extrabold text-xs shadow-bau-sm active:translate-x-0.5 active:translate-y-0.5 transition-transform"
@@ -145,7 +211,6 @@ export default function LeafletMapComponent({ places }: MapProps) {
                     View Full Verdict →
                   </button>
                 </div>
-
               </div>
             </Popup>
           </Marker>
