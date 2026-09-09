@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap');
+@import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+
+:root {
+  --bau-border: 2.5px solid #141416;
+}
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background-color: #12131C;
+  color: #141416;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Custom Bauhaus Leaflet Map Pins */
+.bauhaus-pin {
+  text-align: center;
+  cursor: pointer;
+  transform: translate(-50%, -100%);
+}
+.pin-badge {
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800;
+  font-size: 11.5px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 2px solid #141416;
+  box-shadow: 2px 2px 0 #141416;
+}
+.pin-stem {
+  width: 10px;
+  height: 10px;
+  margin: 0 auto;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(45deg);
+  border: 2px solid #141416;
+  box-shadow: 1.5px 1.5px 0 #141416;
+  margin-top: -3px;
+}
+
+.pin-jengggg .pin-badge, .pin-jengggg .pin-stem { background: #FFCC00; color: #141416; }
+.pin-hociakk .pin-badge, .pin-hociakk .pin-stem { background: #00B368; color: #FFFFFF; }
+.pin-mamadei .pin-badge, .pin-mamadei .pin-stem { background: #F4EEDC; color: #141416; }
+.pin-hmmm .pin-badge, .pin-hmmm .pin-stem { background: #A0A4B8; color: #141416; }
+.pin-requested .pin-badge { background: #FFFFFF; border: 2px dashed #141416; color: #2251FF; }
+.pin-requested .pin-stem { background: #FFFFFF; border: 2px dashed #141416; }
+
+/* SAO Holographic Clip Paths */
+.sao-clip-tab {
+  clip-path: polygon(14px 0, 100% 0, 100% 100%, 14px 100%, 0 50%);
+}
+.sao-clip-panel {
+  clip-path: polygon(24px 0, 100% 0, 100% 100%, 0 100%, 0 44px);
+}
