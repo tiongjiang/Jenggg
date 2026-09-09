@@ -7,7 +7,7 @@ import { supabase, Place } from '@/lib/supabase';
 import { TrainerBoy } from '@/components/TrainerBoy';
 import { SaoDrawer } from '@/components/SaoDrawer';
 
-// Dynamically import Leaflet map to avoid server-side rendering issues
+// Dynamically import Leaflet map
 const LeafletMap = dynamic(() => import('@/components/LeafletMapComponent'), { ssr: false });
 
 export default function HomePage() {
@@ -15,7 +15,6 @@ export default function HomePage() {
   const [places, setPlaces] = useState<Place[]>([]);
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [isSaoOpen, setIsSaoOpen] = useState<boolean>(false);
-  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
@@ -110,7 +109,7 @@ export default function HomePage() {
         <span className="text-xl">⚡</span>
       </button>
 
-      {/* Authentic SAO Circular Node Menu & Sub-panel */}
+      {/* SAO Circular Node Menu */}
       <SaoDrawer
         isOpen={isSaoOpen}
         onClose={() => setIsSaoOpen(false)}
@@ -118,46 +117,19 @@ export default function HomePage() {
         onSelectFilter={setActiveFilter}
       />
 
-      {/* Interactive Map */}
+      {/* Interactive Map with In-Place Popups on Pins */}
       <div className="flex-1 w-full h-full relative z-10">
-        <LeafletMap places={filteredPlaces} onSelectPlace={setSelectedPlace} />
+        <LeafletMap places={filteredPlaces} />
       </div>
 
       {/* Request Hunt Floating Action Button */}
       <button
         onClick={() => router.push('/request')}
-        className="absolute bottom-20 right-3.5 z-30 bg-bau-red text-white border-[2.5px] border-bau-black rounded-full py-2.5 px-4 font-baloo font-extrabold text-xs shadow-bau flex items-center gap-1.5 active:translate-x-0.5 active:translate-y-0.5"
+        className="absolute bottom-6 right-3.5 z-30 bg-bau-red text-white border-[2.5px] border-bau-black rounded-full py-2.5 px-4 font-baloo font-extrabold text-xs shadow-bau flex items-center gap-1.5 active:translate-x-0.5 active:translate-y-0.5"
       >
         <span>🎯</span>
         <span>Request Hunt</span>
       </button>
-
-      {/* Bottom Sheet Place Preview */}
-      {selectedPlace && (
-        <>
-          <div
-            onClick={() => setSelectedPlace(null)}
-            className="absolute inset-0 bg-black/50 z-40"
-          />
-          <div className="absolute left-0 right-0 bottom-0 bg-bau-cream border-t-[2.5px] border-bau-black rounded-t-3xl shadow-2xl p-4 pb-6 z-50">
-            <div className="w-10 h-1 bg-bau-black rounded-full mx-auto mb-3" />
-            <h3 className="font-baloo font-extrabold text-xl">{selectedPlace.name}</h3>
-            <div className="flex gap-3 text-xs font-semibold text-gray-600 mt-1 mb-3">
-              <span>📍 {selectedPlace.area || 'Klang Valley'}</span>
-              <span>{selectedPlace.price_level || '💰💰'}</span>
-            </div>
-            <div className="bg-white border-[2.5px] border-bau-black rounded-xl p-3 text-xs italic text-gray-700 shadow-bau-sm mb-4">
-              &quot;{selectedPlace.quote || 'No Hunter quote recorded yet.'}&quot;
-            </div>
-            <button
-              onClick={() => router.push(`/places/${selectedPlace.id}`)}
-              className="w-full bg-bau-black text-bau-cream border-[2.5px] border-bau-black py-3 rounded-xl font-baloo font-extrabold text-sm shadow-bau active:translate-x-0.5 active:translate-y-0.5"
-            >
-              View Full Details & Official Verdict
-            </button>
-          </div>
-        </>
-      )}
     </div>
   );
 }
