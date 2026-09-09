@@ -102,15 +102,30 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* SAO Menu Floating Trigger (Authentic Hologram Hexagon Crystal) */}
+            {/* SAO Metallic Filter Trigger Orb (Toggles Dropdown Underneath) */}
       <button
         type="button"
-        onClick={() => setIsSaoOpen(true)}
-        className="absolute top-44 right-3 z-30 w-11 h-11 rounded-full bg-gradient-to-b from-[#FFFFFF] to-[#D1D5DB] border-[2.5px] border-[#4B5563] shadow-[0_4px_14px_rgba(0,0,0,0.3)] flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
-        title="Open SAO Filters"
+        onClick={() => setIsSaoOpen(!isSaoOpen)}
+        className={`absolute top-28 right-3.5 z-50 w-11 h-11 rounded-full border-[2.5px] border-bau-black flex items-center justify-center transition-all duration-200 active:scale-95 ${
+          isSaoOpen
+            ? 'bg-bau-yellow shadow-[0_0_16px_#FFCC00] scale-105'
+            : 'bg-bau-cream shadow-bau hover:scale-105'
+        }`}
+        title="Toggle Filter Menu"
       >
-        <span className="text-lg font-space font-extrabold text-[#1F2937]">⬡</span>
+        <span className="text-lg font-space font-extrabold text-bau-black">
+          {isSaoOpen ? '▲' : '⬡'}
+        </span>
       </button>
+
+      {/* Smooth Slide Down/Up Filter Menu */}
+      <SaoDrawer
+        isOpen={isSaoOpen}
+        onClose={() => setIsSaoOpen(false)}
+        currentFilter={activeFilter}
+        onSelectFilter={setActiveFilter}
+      />
+
 
       {/* SAO Menu Drawer */}
       <SaoDrawer
