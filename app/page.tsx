@@ -28,12 +28,18 @@ export default function HomePage() {
   }, []);
 
   const filteredPlaces = places.filter((p) => {
-    const matchesFilter =
-      activeFilter === 'all'
-        ? true
-        : activeFilter === 'requested'
-        ? p.is_requested
-        : p.current_tier === activeFilter;
+    let matchesFilter = true;
+
+    if (activeFilter === 'all') {
+      matchesFilter = true;
+    } else if (activeFilter === 'requested') {
+      matchesFilter = p.is_requested;
+    } else if (activeFilter.startsWith('cat:')) {
+      const catKey = activeFilter.replace('cat:', '').toLowerCase();
+      matchesFilter = p.category.toLowerCase().includes(catKey);
+    } else {
+      matchesFilter = p.current_tier === activeFilter;
+    }
 
     const matchesSearch =
       !searchQuery ||
