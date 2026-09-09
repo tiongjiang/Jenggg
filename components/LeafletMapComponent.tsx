@@ -12,6 +12,13 @@ interface MapProps {
   places: Place[];
 }
 
+function getRatingBadge(tier: string | null, isRequested: boolean) {
+  if (isRequested) return '🎯 Requested';
+  const safeTier = tier || 'mamadei';
+  const ratingDef = RATING_TIERS[safeTier] || RATING_TIERS['mamadei'];
+  return `${ratingDef.emoji} ${ratingDef.label}`;
+}
+
 // 📌 UPGRADED: Double-Decker Pin (Name + Rating)
 function createPinIcon(place: Place) {
   const isReq = Boolean(place.is_requested);
@@ -21,7 +28,6 @@ function createPinIcon(place: Place) {
   const label = isReq ? '🎯 Requested' : `${ratingDef.emoji} ${ratingDef.label}`;
   const bgColor = isReq ? '#FFFFFF' : ratingDef.bgHex;
 
-  // We use inline styles here to guarantee the map renders them instantly without Tailwind purging issues
   return L.divIcon({
     className: 'custom-pin',
     html: `
@@ -39,7 +45,7 @@ function createPinIcon(place: Place) {
     `,
     iconSize: [140, 55],
     iconAnchor: [70, 55],
-    popupAnchor: [0, -60], // 🚀 FIX: Pushes the popup 60px UP so it floats beautifully above the pin!
+    popupAnchor: [0, -60], // 🚀 Pushes popup card safely above the pin!
   });
 }
 
@@ -75,7 +81,7 @@ function createUserTrainerIcon() {
     `,
     iconSize: [44, 44],
     iconAnchor: [22, 38],
-    popupAnchor: [0, -45], // Pushes Trainer popup up
+    popupAnchor: [0, -45],
   });
 }
 
@@ -124,8 +130,6 @@ export default function LeafletMapComponent({ places }: MapProps) {
 
   return (
     <div className="w-full h-full relative overflow-hidden">
-      
-      {/* 2D Map Container */}
       <MapContainer
         center={userPos}
         zoom={14}
@@ -139,7 +143,6 @@ export default function LeafletMapComponent({ places }: MapProps) {
         />
         <MapController center={userPos} />
 
-        {/* User Marker */}
         <Marker position={userPos} icon={createUserTrainerIcon()}>
           <Popup className="bauhaus-leaflet-popup font-baloo font-bold" closeButton={false}>
             <div className="bg-bau-black text-bau-yellow border-2 border-bau-yellow rounded-xl px-3 py-1.5 shadow-bau text-xs text-center">
@@ -148,7 +151,6 @@ export default function LeafletMapComponent({ places }: MapProps) {
           </Popup>
         </Marker>
 
-        {/* Places */}
         {places.map((place) => {
           const coverImg = getFallbackImage(place.category || '');
           const safeTier = place.current_tier || 'mamadei';
@@ -194,16 +196,14 @@ export default function LeafletMapComponent({ places }: MapProps) {
         })}
       </MapContainer>
 
-      {/* 📍 GPS RECENTER BUTTON */}
       <button
         type="button"
         onClick={locateMe}
-        className="absolute bottom-5 left-3.5 z-[1000] w-11 h-11 rounded-full bg-bau-cream text-bau-black border-[2.5px] border-bau-black shadow-bau flex items-center justify-center text-lg active:translate-x-0.5 active:translate-y-0.5 transition-transform"
+        className="absolute bottom-5 left-3.5 z-[1000] w-11 h-11 rounded-full bg-bau-cream border-[2.5px] border-bau-black shadow-bau flex items-center justify-center text-lg active:translate-x-0.5 active:translate-y-0.5 transition-transform"
         title="Recenter GPS"
       >
         📍
       </button>
-
     </div>
   );
 }

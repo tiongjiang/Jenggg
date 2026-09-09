@@ -31,6 +31,7 @@ export const SaoDrawer: React.FC<SaoMenuProps> = ({
       icon: '⭐',
       items: [
         { id: 'all', label: 'All Places', icon: '🌐' },
+        { id: 'saved', label: '⭐ My Saved Spots', icon: '⭐' }, 
         { id: 'jengggg', label: 'Jengggg (5★)', icon: '🔥' },
         { id: 'hociakk', label: 'Hociakk (4★)', icon: '🤤' },
         { id: 'mamadei', label: 'Ma Ma Dei (3★)', icon: '😐' },
