@@ -77,3 +77,42 @@ body {
 .leaflet-popup-tip-container {
   display: none !important;
 }
+
+/* =========================================
+   🎮 3D MAP PERSPECTIVE STYLES
+   ========================================= */
+
+/* The 3D camera wrapper */
+.map-3d-wrapper {
+  perspective: 1200px;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #A6C2EB; /* A nice horizon sky color for the background */
+}
+
+/* Tilt the entire Leaflet map backward and scale it up to fill corners */
+.map-3d-wrapper .leaflet-container {
+  transform: rotateX(45deg) scale(1.4) translateY(-5%);
+  transform-style: preserve-3d;
+  transform-origin: 50% 50%;
+  /* Optional: adds a subtle fog gradient at the top horizon */
+  mask-image: linear-gradient(to bottom, transparent 0%, black 25%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 25%);
+}
+
+/* 📍 Counter-tilt the pins and trainer so they stand up straight */
+.bauhaus-pin, 
+.user-trainer-sprite {
+  transform: rotateX(-45deg);
+  transform-origin: bottom center;
+  transition: transform 0.2s ease-out;
+}
+
+/* 📍 Counter-tilt the popup cards so they face the camera perfectly */
+.leaflet-popup {
+  transform: rotateX(-45deg) !important;
+  transform-origin: bottom center;
+}

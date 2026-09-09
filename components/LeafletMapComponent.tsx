@@ -14,18 +14,18 @@ interface MapProps {
 
 function createPinIcon(tier: string | null, isRequested: boolean) {
   const isReq = Boolean(isRequested);
-  const tierClass = isReq ? 'pin-requested' : `pin-${tier || 'meh'}`;
+  const safeTier = tier || 'mamadei';
+  const tierClass = isReq ? 'pin-requested' : `pin-${safeTier}`;
 
-  // Access rating label from shared constants
-  const ratingDef = RATING_TIERS[tier || 'meh'];
+  const ratingDef = RATING_TIERS[safeTier] || RATING_TIERS['mamadei'];
   const label = isReq ? '🎯 Requested' : `${ratingDef.emoji} ${ratingDef.label}`;
 
   return L.divIcon({
     className: 'custom-pin',
     html: `
       <div class="bauhaus-pin ${tierClass}">
-        <div class="pin-badge" style="background-color: ${isReq ? '#FFFFFF' : ratingDef.bgHex}">${label}</div>
-        <div class="pin-stem" style="background-color: ${isReq ? '#FFFFFF' : ratingDef.bgHex}"></div>
+        <div class="pin-badge" style="background-color: ${isReq ? '#FFFFFF' : ratingDef.bgHex}; color: #141416;">${label}</div>
+        <div class="pin-stem" style="background-color: ${isReq ? '#FFFFFF' : ratingDef.bgHex};"></div>
       </div>
     `,
     iconSize: [80, 42],
@@ -34,14 +34,15 @@ function createPinIcon(tier: string | null, isRequested: boolean) {
   });
 }
 
-// User Trainer Boy Icon with glowing reach circle
+// User Trainer Boy Icon
 function createUserTrainerIcon() {
   return L.divIcon({
     className: 'user-trainer-marker',
     html: `
-      <div style="position:relative;width:44px;height:44px;display:flex;align-items:center;justify-content:center;">
+      <!-- Added .user-trainer-sprite class here to counter-tilt it! -->
+      <div class="user-trainer-sprite" style="position:relative;width:44px;height:44px;display:flex;align-items:center;justify-content:center;">
         <!-- Pulsing interaction reach halo -->
-        <div style="position:absolute;inset:-10px;border-radius:50%;background:rgba(255,204,0,0.3);animation:pulse 2s infinite;"></div>
+        <div style="position:absolute;inset:-15px;border-radius:50%;background:rgba(255,204,0,0.25); border: 2px solid rgba(255,204,0,0.6); animation:pulse 2s infinite; transform: rotateX(45deg);"></div>
         <!-- Shadow -->
         <div style="position:absolute;bottom:2px;width:24px;height:7px;border-radius:50%;background:rgba(0,0,0,0.45);filter:blur(1px);"></div>
         <!-- 2D Trainer Boy -->
@@ -92,12 +93,10 @@ function getFallbackImage(category: string) {
   return 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80';
 }
 
-// Controller to handle camera flight
 function MapController({ center }: { center: [number, number] }) {
   const map = useMap();
   useEffect(() => {
     map.setView(center, 14, { animate: true });
-    // Fix Leaflet viewport dimensions
     setTimeout(() => map.invalidateSize(), 300);
   }, [center, map]);
   return null;
@@ -107,7 +106,6 @@ export default function LeafletMapComponent({ places }: MapProps) {
   const router = useRouter();
   const [userPos, setUserPos] = useState<[number, number]>([3.1292, 101.6784]); // Default: Bangsar
 
-  // Auto-acquire user location on mount
   useEffect(() => {
     if (typeof window !== 'undefined' && 'geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -120,7 +118,6 @@ export default function LeafletMapComponent({ places }: MapProps) {
     }
   }, []);
 
-  // Trigger geolocation on tap of locate button
   function locateMe() {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition((pos) => {
@@ -133,90 +130,84 @@ export default function LeafletMapComponent({ places }: MapProps) {
 
   return (
     <div className="w-full h-full relative">
-      <MapContainer
-        center={userPos}
-        zoom={13}
-        zoomControl={false}
-        attributionControl={false}
-        className="w-full h-full"
-      >
-        {/* 🚀 Blazing Fast OpenStreetMap Tiles (No API key restriction, loads instantly!) */}
-        <TileLayer 
-          url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
-          maxZoom={19}
-        />
+      {/* 🚀 ADDED .map-3d-wrapper HERE */}
+      <div className="map-3d-wrapper">
+        <MapContainer
+          center={userPos}
+          zoom={14}
+          zoomControl={false}
+          attributionControl={false}
+          className="w-full h-full"
+        >
+          <TileLayer 
+            url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+            maxZoom={19}
+          />
 
-        <MapController center={userPos} />
+          <MapController center={userPos} />
 
-        {/* 👤 Live User GPS Trainer Marker */}
-        <Marker position={userPos} icon={createUserTrainerIcon()}>
-          <Popup className="bauhaus-leaflet-popup font-baloo font-bold" closeButton={false}>
-            <div className="bg-bau-black text-bau-yellow border-2 border-bau-yellow rounded-xl px-3 py-1.5 shadow-bau text-xs text-center">
-              📍 You are here, Trainer!
-            </div>
-          </Popup>
-        </Marker>
+          {/* 👤 Live User GPS Trainer Marker */}
+          <Marker position={userPos} icon={createUserTrainerIcon()}>
+            <Popup className="bauhaus-leaflet-popup font-baloo font-bold" closeButton={false}>
+              <div className="bg-bau-black text-bau-yellow border-2 border-bau-yellow rounded-xl px-3 py-1.5 shadow-bau text-xs text-center">
+                📍 You are here, Trainer!
+              </div>
+            </Popup>
+          </Marker>
 
-        {/* 📍 Curated Food Hunter Spots */}
-        {places.map((place) => {
-          const coverImg = getFallbackImage(place.category || '');
-          const ratingDef = RATING_TIERS[place.current_tier || 'meh'];
-          const officialBadge = place.is_requested ? '🎯 Requested' : `${ratingDef.emoji} ${ratingDef.label}`;
+          {/* 📍 Curated Food Hunter Spots */}
+          {places.map((place) => {
+            const coverImg = getFallbackImage(place.category || '');
+            const safeTier = place.current_tier || 'mamadei';
+            const ratingDef = RATING_TIERS[safeTier] || RATING_TIERS['mamadei'];
+            const officialBadge = place.is_requested ? '🎯 Requested' : `${ratingDef.emoji} ${ratingDef.label}`;
 
-          return (
-            <Marker
-              key={place.id}
-              position={[Number(place.lat), Number(place.lng)]}
-              icon={createPinIcon(place.current_tier, place.is_requested)}
-            >
-              <Popup className="bauhaus-leaflet-popup" closeButton={false}>
-                <div className="w-[230px] bg-bau-cream border-[2.5px] border-bau-black rounded-2xl overflow-hidden shadow-bau select-none">
-                  {/* Card Cover */}
-                  <div className="h-24 w-full relative overflow-hidden bg-gray-950 border-b-2 border-bau-black">
-                    <img src={coverImg} alt={place.name} className="w-full h-full object-cover" />
-                    <div className="absolute top-2 right-2 bg-bau-cream border-[1.5px] border-bau-black rounded-full px-2 py-0.5 font-baloo font-extrabold text-[10px] shadow-bau-sm text-bau-black">
-                      {place.price_level || '💰💰'}
-                    </div>
-                    <div className="absolute bottom-1.5 left-2 bg-black/60 backdrop-blur-sm text-white font-semibold text-[9px] px-2 py-0.5 rounded-md">
-                      📍 {place.area || 'Klang Valley'}
-                    </div>
-                  </div>
-
-                  <div className="p-3">
-                    <h3 className="font-baloo font-extrabold text-sm leading-tight text-bau-black truncate">{place.name}</h3>
-                    <div className="text-[10px] text-gray-500 font-semibold truncate mb-2">{place.category}</div>
-
-                    {/* Stats */}
-                    <div className="grid grid-cols-2 gap-1.5 mb-2">
-                      <div className="bg-[#191B28] text-white p-1.5 rounded-lg border border-bau-black">
-                        <span className="block text-[8px] font-space tracking-wider uppercase text-bau-yellow font-bold">Official</span>
-                        <span className="font-baloo font-extrabold text-[11px] truncate block">{officialBadge}</span>
+            return (
+              <Marker
+                key={place.id}
+                position={[Number(place.lat), Number(place.lng)]}
+                icon={createPinIcon(place.current_tier, place.is_requested)}
+              >
+                <Popup className="bauhaus-leaflet-popup" closeButton={false}>
+                  <div className="w-[230px] bg-bau-cream border-[2.5px] border-bau-black rounded-2xl overflow-hidden shadow-bau select-none">
+                    <div className="h-24 w-full relative overflow-hidden bg-gray-950 border-b-2 border-bau-black">
+                      <img src={coverImg} alt={place.name} className="w-full h-full object-cover" />
+                      <div className="absolute top-2 right-2 bg-bau-cream border-[1.5px] border-bau-black rounded-full px-2 py-0.5 font-baloo font-extrabold text-[10px] shadow-bau-sm text-bau-black">
+                        {place.price_level || '💰💰'}
                       </div>
-                      <div className="bg-white p-1.5 rounded-lg border border-bau-black text-bau-black">
-                        <span className="block text-[8px] font-space tracking-wider text-gray-500 font-bold uppercase">Hunters</span>
-                        <span className="font-baloo font-extrabold text-[11px] block text-bau-red">★ 4.8</span>
+                      <div className="absolute bottom-1.5 left-2 bg-black/60 backdrop-blur-sm text-white font-semibold text-[9px] px-2 py-0.5 rounded-md">
+                        📍 {place.area || 'Klang Valley'}
                       </div>
                     </div>
-
-                    <p className="text-[10.5px] text-gray-700 italic line-clamp-2 leading-tight mb-2.5">
-                      &quot;{place.quote || place.description || 'Discovered by community!'}&quot;
-                    </p>
-
-                    <button
-                      onClick={() => router.push(`/places/${place.id}`)}
-                      className="w-full bg-bau-black text-bau-cream border-[2px] border-bau-black py-2 rounded-xl font-baloo font-extrabold text-xs shadow-bau-sm active:translate-x-0.5 active:translate-y-0.5 transition-transform"
-                    >
-                      View Full Verdict →
-                    </button>
+                    <div className="p-3">
+                      <h3 className="font-baloo font-extrabold text-sm leading-tight text-bau-black truncate">{place.name}</h3>
+                      <div className="text-[10px] text-gray-500 font-semibold truncate mb-2">{place.category}</div>
+                      <div className="grid grid-cols-2 gap-1.5 mb-2">
+                        <div className="bg-[#191B28] text-white p-1.5 rounded-lg border border-bau-black">
+                          <span className="block text-[8px] font-space tracking-wider uppercase text-bau-yellow font-bold">Official</span>
+                          <span className="font-baloo font-extrabold text-[11px] truncate block">{officialBadge}</span>
+                        </div>
+                        <div className="bg-white p-1.5 rounded-lg border border-bau-black text-bau-black">
+                          <span className="block text-[8px] font-space tracking-wider text-gray-500 font-bold uppercase">Hunters</span>
+                          <span className="font-baloo font-extrabold text-[11px] block text-bau-red">★ 4.8</span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => router.push(`/places/${place.id}`)}
+                        className="w-full bg-bau-black text-bau-cream border-[2px] border-bau-black py-2 rounded-xl font-baloo font-extrabold text-xs shadow-bau-sm active:translate-x-0.5 active:translate-y-0.5 transition-transform"
+                      >
+                        View Full Verdict →
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </Popup>
-            </Marker>
-          );
-        })}
-      </MapContainer>
+                </Popup>
+              </Marker>
+            );
+          })}
+        </MapContainer>
+      </div>
 
-      {/* Floating GPS Recenter button (📍) raised to z-[1000] to sit completely above Map tiles */}
+      {/* Floating GPS Recenter button (📍) kept safely ABOVE the 3D wrapper */}
       <button
         type="button"
         onClick={locateMe}

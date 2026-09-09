@@ -1,5 +1,5 @@
 export interface RatingTier {
-  key: 'ewww' | 'meh' | 'okay' | 'good' | 'jengggg';
+  key: 'ewww' | 'hmmm' | 'mamadei' | 'hociakk' | 'jengggg';
   emoji: string;
   label: string;
   colorClass: string;
@@ -14,23 +14,23 @@ export const RATING_TIERS: Record<string, RatingTier> = {
     colorClass: 'text-purple-600',
     bgHex: '#7B3294',
   },
-  meh: {
-    key: 'meh',
+  hmmm: {
+    key: 'hmmm',
+    emoji: '🤨',
+    label: 'Hmmm',
+    colorClass: 'text-gray-500',
+    bgHex: '#A0A4B8',
+  },
+  mamadei: {
+    key: 'mamadei',
     emoji: '😐',
     label: 'Ma Ma Dei',
     colorClass: 'text-gray-500',
-    bgHex: '#8E8E93',
+    bgHex: '#F4EEDC',
   },
-  okay: {
-    key: 'okay',
-    emoji: '🙂',
-    label: 'Okay Lah',
-    colorClass: 'text-blue-500',
-    bgHex: '#2251FF',
-  },
-  good: {
-    key: 'good',
-    emoji: '😋',
+  hociakk: {
+    key: 'hociakk',
+    emoji: '🤤',
     label: 'Hociakk',
     colorClass: 'text-green-500',
     bgHex: '#00B368',
