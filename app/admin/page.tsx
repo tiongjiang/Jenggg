@@ -10,6 +10,7 @@ export default function AdminConsolePage() {
   const [places, setPlaces] = useState<Place[]>([]);
   const [requests, setRequests] = useState<HuntRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [authorized, setAuthorized] = useState(false);
 
   // Modal State for Create/Edit Place
   const [showModal, setShowModal] = useState(false);
@@ -28,9 +29,29 @@ export default function AdminConsolePage() {
     is_requested: false,
   });
 
+  // 🔒 SECURITY CHECK: Gated exclusively to tiongjiang98@gmail.com
   useEffect(() => {
-    fetchAdminData();
-  }, []);
+    async function checkSecurityGating() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session || !session.user || session.user.email !== 'tiongjiang98@gmail.com') {
+          alert('🚫 Access Denied: You are not authorized to view the Admin Command Center.');
+          router.push('/'); // Boot them instantly back to the map
+          return;
+        }
+
+        // If authorized, proceed to load administrative telemetry data
+        setAuthorized(true);
+        fetchAdminData();
+      } catch (err) {
+        console.error('Security handshake failed:', err);
+        router.push('/');
+      }
+    }
+
+    checkSecurityGating();
+  }, [router]);
 
   async function fetchAdminData() {
     try {
@@ -68,7 +89,7 @@ export default function AdminConsolePage() {
       lat: parseFloat(latInput),
       lng: parseFloat(lngInput),
       price_level: '💰💰',
-      current_tier: 'mamadei', // Default tier until officially reviewed
+      current_tier: 'mamadei',
       quote: 'Hunted by popular request! Awaiting official review.',
       is_requested: true,
       request_count: req.hunt_count,
@@ -128,17 +149,24 @@ export default function AdminConsolePage() {
     };
 
     if (editingId) {
-      // UPDATE
       const { error } = await supabase.from('places').update(payload).eq('id', editingId);
       if (error) alert(error.message);
     } else {
-      // CREATE
       const { error } = await supabase.from('places').insert([payload]);
       if (error) alert(error.message);
     }
 
     setShowModal(false);
     fetchAdminData();
+  }
+
+  // Render blank screen until security authorization passes
+  if (!authorized) {
+    return (
+      <div className="flex-1 bg-bau-cream flex items-center justify-center font-baloo font-bold text-gray-500">
+        🔐 Checking Credentials...
+      </div>
+    );
   }
 
   return (
@@ -243,7 +271,7 @@ export default function AdminConsolePage() {
         )}
       </div>
 
-      {/* CRUD MODAL FOR PLACES */}
+      {/* CRUD MODAL */}
       {showModal && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-md bg-bau-cream border-[2.5px] border-bau-black rounded-3xl p-5 shadow-2xl overflow-y-auto max-h-[90vh]">
