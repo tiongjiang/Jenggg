@@ -20,13 +20,6 @@ interface ReviewItem {
   reviewed_at: string;
 }
 
-interface CommentItem {
-  id: string;
-  hunter_name: string;
-  body: string;
-  created_at: string;
-}
-
 export default function PlaceDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -35,16 +28,10 @@ export default function PlaceDetailPage() {
   const [place, setPlace] = useState<Place | null>(null);
   const [officialReview, setOfficialReview] = useState<ReviewItem | null>(null);
   const [communityReviews, setCommunityReviews] = useState<ReviewItem[]>([]);
-  const [comments, setComments] = useState<CommentItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   // 🔒 Security Check State
   const [isAdmin, setIsAdmin] = useState(false);
-
-  // Community Comments Form State
-  const [authorName, setAuthorName] = useState('');
-  const [newComment, setNewComment] = useState('');
-  const [submittingComment, setSubmittingComment] = useState(false);
 
   // Leave Community Review Form State
   const [showReviewForm, setShowForm] = useState(false);
@@ -120,43 +107,10 @@ export default function PlaceDetailPage() {
         setOfficialReview(official as ReviewItem);
         setCommunityReviews(community as ReviewItem[]);
       }
-
-      // 3. Fetch Comments
-      const { data: cData } = await supabase.from('comments').select('*').eq('place_id', placeId).eq('flagged', false).order('created_at', { ascending: false });
-      if (cData) {
-        setComments(cData as CommentItem[]);
-      }
     } catch (err) {
       console.error('Error fetching details:', err);
     } finally {
       setLoading(false);
-    }
-  }
-
-  // Handle Community Comments Post
-  async function handlePostComment(e: React.FormEvent) {
-    e.preventDefault();
-    if (!newComment.trim() || !authorName.trim()) return;
-
-    try {
-      setSubmittingComment(true);
-      const { error } = await supabase.from('comments').insert([
-        {
-          place_id: placeId,
-          hunter_name: authorName.trim(),
-          body: newComment.trim(),
-        },
-      ]);
-      if (error) throw error;
-
-      setNewComment('');
-      // Refresh comments list
-      const { data } = await supabase.from('comments').select('*').eq('place_id', placeId).eq('flagged', false).order('created_at', { ascending: false });
-      if (data) setComments(data as CommentItem[]);
-    } catch (err) {
-      alert('Error posting comment');
-    } finally {
-      setSubmittingComment(false);
     }
   }
 
@@ -363,46 +317,7 @@ export default function PlaceDetailPage() {
           </div>
         </div>
 
-        {/* Separated Community Comments Section */}
-        <div className="border-t-[2.5px] border-bau-black pt-4">
-          <h3 className="font-baloo font-extrabold text-base text-bau-black mb-3">👥 Community Discussion</h3>
-          
-          <form onSubmit={handlePostComment} className="flex flex-col gap-2.5 mb-5 bg-white p-4 border-[2.5px] border-bau-black rounded-xl shadow-bau-sm">
-            <input
-              type="text"
-              placeholder="Your Name"
-              required
-              value={authorName}
-              onChange={(e) => setAuthorName(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs font-semibold outline-none"
-            />
-            <textarea
-              placeholder="Leave a comment or parking tip..."
-              required
-              rows={2}
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-300 rounded-lg p-2.5 text-xs font-semibold outline-none resize-none"
-            />
-            <button type="submit" disabled={submittingComment} className="bg-bau-black text-white py-2 rounded-lg text-xs font-bold font-baloo active:scale-95 transition-all">
-              {submittingComment ? 'Posting...' : 'Post Comment'}
-            </button>
-          </form>
-
-          <div className="flex flex-col gap-2.5">
-            {comments.map((c) => (
-              <div key={c.id} className="bg-white border-[2.5px] border-bau-black rounded-xl p-3 shadow-bau-sm text-xs">
-                <div className="flex justify-between items-center mb-1 font-bold text-bau-black">
-                  <span>{c.hunter_name}</span>
-                  <span className="text-[10px] text-gray-400">{new Date(c.created_at).toLocaleDateString()}</span>
-                </div>
-                <p className="text-gray-600 font-medium leading-relaxed">{c.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* 3. Community Hunters Reviews Section */}
+        {/* Community Hunters Reviews Section */}
         <div className="flex flex-col gap-2.5 mt-1 border-t-[2.5px] border-bau-black pt-4">
           <div className="flex items-center justify-between">
             <h3 className="font-baloo font-extrabold text-base text-bau-black flex items-center gap-1.5">
@@ -462,8 +377,8 @@ export default function PlaceDetailPage() {
                 </select>
               </div>
               <div>
-                <label className="block font-baloo font-extrabold text-xs mb-1">Comments *</label>
-                <textarea rows={3} required value={comment} onChange={(e) => setComment(e.target.value)} placeholder="What should we order?" className="w-full bg-white border-[2px] border-bau-black rounded-xl p-2.5 text-xs font-semibold outline-none resize-none" />
+                <label className="block font-baloo font-extrabold text-xs mb-1">Comments & Tips *</label>
+                <textarea rows={3} required value={comment} onChange={(e) => setComment(e.target.value)} placeholder="What should we order? Parking tips?" className="w-full bg-white border-[2px] border-bau-black rounded-xl p-2.5 text-xs font-semibold outline-none resize-none" />
               </div>
               <button type="submit" disabled={submittingReview} className="mt-1 bg-bau-blue text-white py-3 rounded-xl font-baloo font-extrabold text-sm border-[2px] border-bau-black shadow-bau">{submittingReview ? 'Posting...' : '🚀 Post Review (+25 XP)'}</button>
             </form>
