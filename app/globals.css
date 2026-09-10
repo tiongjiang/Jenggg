@@ -150,3 +150,85 @@ body {
   transform-origin: bottom center;
   transition: transform 0.4s ease-in-out;
 }
+
+/* =========================================================
+   👾 MONSTER MARKER & ZOOM-BASED LEVEL OF DETAIL (LoD)
+   ========================================================= */
+
+/* Base container for Leaflet divIcon */
+.monster-marker-container {
+  background: transparent !important;
+  border: none !important;
+}
+
+.monster-marker-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  pointer-events: auto;
+}
+
+/* Monster Creature SVG Wrapper */
+.monster-icon-box {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 3px 2px rgba(20, 20, 22, 0.45));
+  cursor: pointer;
+  z-index: 10;
+  flex-shrink: 0;
+  transition: transform 0.15s ease-out;
+}
+
+.monster-icon-box:active {
+  transform: scale(0.92);
+}
+
+/* Expandable Name + Rating Badge */
+.monster-label-pill {
+  position: absolute;
+  left: 36px; /* Sits directly beside the creature */
+  white-space: nowrap;
+  pointer-events: auto;
+  transform-origin: left center;
+  
+  /* Smooth CSS transition for Level of Detail reveal */
+  opacity: 0;
+  transform: scale(0.85) translateX(-8px);
+  pointer-events: none;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 9;
+}
+
+/* When zoomed in (>= Zoom 15) OR tapped to inspect: reveal label */
+.zoom-expanded .monster-label-pill,
+.tap-expanded .monster-label-pill {
+  opacity: 1;
+  transform: scale(1) translateX(0);
+  pointer-events: auto;
+}
+
+/* Multi-Place Hawker Collision Badge */
+.monster-collision-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  border-radius: 9999px;
+  background-color: #FF3B30;
+  color: #FFFFFF;
+  border: 2px solid #141416;
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 1.5px 1.5px 0px #141416;
+  z-index: 20;
+}
