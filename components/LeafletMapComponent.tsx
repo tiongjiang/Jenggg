@@ -13,16 +13,15 @@ interface MapProps {
 
 export const ZOOM_LABEL_THRESHOLD = 15;
 
-// Mapping to Tailwind theme.extend.colors.tier
 const TIER_METRICS: Record<
   string,
-  { fill: string; accent: string; title: string; level: string; border: string }
+  { fill: string; accent: string; icon: string; label: string }
 > = {
-  jengggg: { fill: '#FFCC00', accent: '#E5A700', title: '🔥 God Tier', level: 'Lv.99 Boss', border: '#FFCC00' },
-  hociakk: { fill: '#00B368', accent: '#00854E', title: '🤤 Delicious', level: 'Lv.75 Elite', border: '#00B368' },
-  mamadei: { fill: '#F4EEDC', accent: '#D1C6A9', title: '😐 Balanced', level: 'Lv.40 Normal', border: '#141416' },
-  hmmm:    { fill: '#A0A4B8', accent: '#7A7E94', title: '🤨 Suspicious', level: 'Lv.20 Risky', border: '#A0A4B8' },
-  ewww:    { fill: '#7B3294', accent: '#501C63', title: '😖 Cursed', level: 'Lv.1 Hazard', border: '#7B3294' },
+  jengggg: { fill: '#FFCC00', accent: '#E5A700', icon: '🔥', label: 'Jengggg' },
+  hociakk: { fill: '#00B368', accent: '#00854E', icon: '🤤', label: 'Hociakk' },
+  mamadei: { fill: '#F4EEDC', accent: '#D1C6A9', icon: '😐', label: 'Ma Ma Dei' },
+  hmmm:    { fill: '#A0A4B8', accent: '#7A7E94', icon: '🤨', label: 'Hmmm' },
+  ewww:    { fill: '#7B3294', accent: '#501C63', icon: '😖', label: 'Ewww' },
 };
 
 function hashString(str: string) {
@@ -34,72 +33,54 @@ function hashString(str: string) {
   return Math.abs(hash);
 }
 
-/**
- * 🍜 CHIBI PIXEL ART FOOD GENERATOR
- * Generates 16-bit cute Malaysian food sprites with little faces based on place category & ID
- */
 function getChibiPixelFoodSvg(seedStr: string, category: string, tierColor: string, accentColor: string) {
   const seed = hashString(seedStr || 'food');
   const cat = (category || '').toLowerCase();
 
-  // Determine food archetype based on category / seed
   let foodType = seed % 5;
   if (cat.includes('nasi') || cat.includes('kandar') || cat.includes('rice') || cat.includes('street')) {
-    foodType = 0; // Steaming Noodle/Rice Bowl
+    foodType = 0;
   } else if (cat.includes('burger') || cat.includes('western')) {
-    foodType = 1; // Kawaii Chubby Burger
+    foodType = 1;
   } else if (cat.includes('satay') || cat.includes('bbq') || cat.includes('mookata')) {
-    foodType = 2; // Pixel Satay Skewers
+    foodType = 2;
   } else if (cat.includes('cafe') || cat.includes('coffee') || cat.includes('kopitiam') || cat.includes('boba')) {
-    foodType = 3; // Bubble Tea / Kopi Kaw Cup
+    foodType = 3;
   } else if (cat.includes('dim sum') || cat.includes('dumpling') || cat.includes('snack')) {
-    foodType = 4; // Cute Dim Sum Bao
+    foodType = 4;
   }
 
-  // 1. STEAMING RICE / NOODLE BOWL
   if (foodType === 0) {
     return `
       <svg viewBox="0 0 32 32" width="38" height="38" shape-rendering="crispEdges">
-        <!-- Steam -->
         <rect x="9" y="4" width="2" height="3" fill="#FFFFFF" opacity="0.8"/>
         <rect x="15" y="2" width="2" height="4" fill="#FFFFFF" opacity="0.8"/>
         <rect x="21" y="4" width="2" height="3" fill="#FFFFFF" opacity="0.8"/>
-        <!-- Chopsticks -->
         <line x1="20" y1="5" x2="28" y2="13" stroke="#8B5A2B" stroke-width="1.8"/>
-        <!-- Food Filling inside bowl -->
         <rect x="7" y="11" width="18" height="4" fill="${accentColor}"/>
         <rect x="13" y="10" width="6" height="2" fill="#FF3B30"/>
-        <!-- Bowl Body -->
         <rect x="5" y="14" width="22" height="10" rx="3" fill="${tierColor}" stroke="#141416" stroke-width="1.8"/>
         <rect x="9" y="24" width="14" height="2" fill="#141416"/>
-        <!-- Chibi Eyes & Smile -->
         <rect x="10" y="17" width="2" height="3" fill="#141416"/>
         <rect x="20" y="17" width="2" height="3" fill="#141416"/>
         <rect x="14" y="20" width="4" height="1.5" fill="#141416"/>
-        <!-- Cute Blush -->
         <rect x="8" y="19" width="2" height="1" fill="#FF3B30"/>
         <rect x="22" y="19" width="2" height="1" fill="#FF3B30"/>
       </svg>
     `;
   }
 
-  // 2. CHUBBY PIXEL BURGER
   if (foodType === 1) {
     return `
       <svg viewBox="0 0 32 32" width="38" height="38" shape-rendering="crispEdges">
-        <!-- Top Sesame Bun -->
         <rect x="6" y="8" width="20" height="7" rx="3" fill="${tierColor}" stroke="#141416" stroke-width="1.8"/>
         <rect x="10" y="10" width="2" height="1" fill="#FFFFFF"/>
         <rect x="16" y="9" width="2" height="1" fill="#FFFFFF"/>
         <rect x="20" y="11" width="2" height="1" fill="#FFFFFF"/>
-        <!-- Lettuce & Tomato -->
         <rect x="5" y="15" width="22" height="2" fill="#00B368"/>
         <rect x="7" y="17" width="18" height="2" fill="#FF3B30"/>
-        <!-- Patty -->
         <rect x="5" y="19" width="22" height="4" rx="1" fill="#5C3317" stroke="#141416" stroke-width="1.5"/>
-        <!-- Bottom Bun -->
         <rect x="6" y="23" width="20" height="4" rx="2" fill="${tierColor}" stroke="#141416" stroke-width="1.8"/>
-        <!-- Chibi Face on Top Bun -->
         <rect x="11" y="11" width="2" height="2" fill="#141416"/>
         <rect x="19" y="11" width="2" height="2" fill="#141416"/>
         <rect x="14" y="13" width="4" height="1" fill="#141416"/>
@@ -107,41 +88,30 @@ function getChibiPixelFoodSvg(seedStr: string, category: string, tierColor: stri
     `;
   }
 
-  // 3. PIXEL SATAY SKEWER / BBQ
   if (foodType === 2) {
     return `
       <svg viewBox="0 0 32 32" width="38" height="38" shape-rendering="crispEdges">
-        <!-- Skewer Stick -->
         <line x1="8" y1="28" x2="24" y2="4" stroke="#D2B48C" stroke-width="2.5" stroke-linecap="round"/>
-        <!-- Meat Cubes in Tier Color -->
         <rect x="17" y="5" width="8" height="6" rx="2" fill="${tierColor}" stroke="#141416" stroke-width="1.5"/>
         <rect x="13" y="11" width="8" height="6" rx="2" fill="${accentColor}" stroke="#141416" stroke-width="1.5"/>
         <rect x="9" y="17" width="8" height="6" rx="2" fill="${tierColor}" stroke="#141416" stroke-width="1.5"/>
-        <!-- Chibi Face on Middle Meat -->
         <rect x="15" y="13" width="1.5" height="1.5" fill="#141416"/>
         <rect x="19" y="13" width="1.5" height="1.5" fill="#141416"/>
         <rect x="17" y="15" width="2" height="1" fill="#141416"/>
-        <!-- Peanut Sauce Dip Drop -->
         <circle cx="23" cy="23" r="3" fill="#FFCC00" stroke="#141416" stroke-width="1"/>
       </svg>
     `;
   }
 
-  // 4. BUBBLE TEA / KOPI CUP
   if (foodType === 3) {
     return `
       <svg viewBox="0 0 32 32" width="38" height="38" shape-rendering="crispEdges">
-        <!-- Straw -->
         <line x1="17" y1="3" x2="20" y2="12" stroke="#FF3B30" stroke-width="2.5" stroke-linecap="round"/>
-        <!-- Cup Lid -->
         <rect x="7" y="10" width="18" height="3" rx="1.5" fill="#141416"/>
-        <!-- Cup Body -->
         <path d="M8 13L10 27H22L24 13Z" fill="${tierColor}" stroke="#141416" stroke-width="1.8"/>
-        <!-- Boba Pearls -->
         <circle cx="12" cy="24" r="1.5" fill="#141416"/>
         <circle cx="16" cy="25" r="1.5" fill="#141416"/>
         <circle cx="20" cy="24" r="1.5" fill="#141416"/>
-        <!-- Chibi Eyes & Blush -->
         <rect x="12" y="16" width="2" height="2" fill="#141416"/>
         <rect x="18" y="16" width="2" height="2" fill="#141416"/>
         <rect x="15" y="18" width="2" height="1" fill="#141416"/>
@@ -151,16 +121,11 @@ function getChibiPixelFoodSvg(seedStr: string, category: string, tierColor: stri
     `;
   }
 
-  // 5. KAWAII STEAMED BAO / DIM SUM
   return `
     <svg viewBox="0 0 32 32" width="38" height="38" shape-rendering="crispEdges">
-      <!-- Bamboo Mat -->
       <ellipse cx="16" cy="26" rx="12" ry="3.5" fill="#D2B48C" stroke="#141416" stroke-width="1.5"/>
-      <!-- Bao Body in Tier Color -->
       <path d="M8 23C7 16 11 11 16 10C21 11 25 16 24 23C22 25 10 25 8 23Z" fill="${tierColor}" stroke="#141416" stroke-width="1.8"/>
-      <!-- Top Fold Twist -->
       <path d="M14 10C16 8 16 8 18 10" stroke="#141416" stroke-width="1.5" stroke-linecap="round"/>
-      <!-- Chibi Face -->
       <rect x="12" y="16" width="2" height="2" fill="#141416"/>
       <rect x="18" y="16" width="2" height="2" fill="#141416"/>
       <rect x="14" y="19" width="4" height="1.5" rx="0.5" fill="#141416"/>
@@ -170,10 +135,69 @@ function getChibiPixelFoodSvg(seedStr: string, category: string, tierColor: stri
   `;
 }
 
+function getInlineTierIconBadge(safeTier: string, isRequested: boolean, isCluster: boolean) {
+  if (isCluster) {
+    return `
+      <span style="
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #141416;
+        color: #FFFDF7;
+        font-size: 10px;
+        flex-shrink: 0;
+      ">👥</span>
+    `;
+  }
+
+  if (isRequested) {
+    return `
+      <span style="
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #FF3B30;
+        border: 1.5px solid #141416;
+        color: #FFFFFF;
+        font-size: 10px;
+        flex-shrink: 0;
+      ">🎯</span>
+    `;
+  }
+
+  const metrics = TIER_METRICS[safeTier] || TIER_METRICS.mamadei;
+  const ratingDef = RATING_TIERS[safeTier] || RATING_TIERS.mamadei;
+
+  return `
+    <span style="
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: ${metrics.fill};
+      border: 1.5px solid #141416;
+      font-size: 10px;
+      line-height: 1;
+      flex-shrink: 0;
+    ">
+      ${ratingDef.emoji}
+    </span>
+  `;
+}
+
 /**
- * 🏷️ Creates Leaflet divIcon with RPG Player-Style Overhead Nameplate
+ * 🏷️ Creates Marker divIcon
+ * @param isPopupOpen when true, completely hides the overhead nameplate so it doesn't overlap the popup card!
  */
-function createRpgFoodIcon(group: Place[], isZoomedIn: boolean) {
+function createRpgFoodIcon(group: Place[], isZoomedIn: boolean, isPopupOpen: boolean) {
   const primary = group[0];
   const isCluster = group.length > 1;
   const safeTier = primary.current_tier || 'mamadei';
@@ -208,78 +232,51 @@ function createRpgFoodIcon(group: Place[], isZoomedIn: boolean) {
       ">${group.length}</div>`
     : '';
 
-  const nameplateTitle = isCluster ? `Hawker Hub (${group.length})` : primary.name;
-  const nameplateRole = isCluster ? '🎯 Quest Cluster' : primary.is_requested ? '🎯 Bounty' : metrics.title;
-  const nameplateLevel = isCluster ? 'Lv.MAX' : metrics.level;
+  const labelText = isCluster ? `Hawker Hub (${group.length})` : primary.name;
+  const inlineTierBadge = getInlineTierIconBadge(safeTier, Boolean(primary.is_requested), isCluster);
+
+  // If the popup is open, suppress the overhead nameplate
+  const showLabel = isZoomedIn && !isPopupOpen;
 
   return L.divIcon({
     className: 'rpg-food-marker-container',
     html: `
-      <div class="rpg-marker-wrapper ${isZoomedIn ? 'zoom-expanded' : ''}" style="width: 44px; height: 44px;">
+      <div class="rpg-marker-wrapper ${showLabel ? 'zoom-expanded' : ''}" style="width: 44px; height: 44px;">
         
-        <!-- 🏷️ RPG OVERHEAD NAMEPLATE (Centered above the sprite) -->
-        <div class="rpg-nameplate">
+        <!-- Overhead Label (hidden when popup is active) -->
+        <div class="rpg-nameplate" style="${isPopupOpen ? 'display: none !important;' : ''}">
           <div style="
             display: flex;
             flex-direction: column;
             align-items: center;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
           ">
-            <!-- Main Badge Container -->
             <div style="
               background: #FFFDF7;
               border: 2px solid #141416;
               border-radius: 8px;
-              padding: 2px 7px;
+              padding: 2.5px 7px;
               display: flex;
               align-items: center;
               gap: 5px;
               box-shadow: 2px 2px 0px #141416;
             ">
-              <!-- RPG Level Tag -->
-              <span style="
-                background: #141416;
-                color: #FFCC00;
-                font-family: 'Space Grotesk', sans-serif;
-                font-size: 8.5px;
-                font-weight: 800;
-                padding: 1px 4px;
-                border-radius: 4px;
-                letter-spacing: 0.3px;
-              ">
-                ${nameplateLevel}
-              </span>
-
-              <!-- Place Name -->
               <span style="
                 font-family: 'Baloo 2', sans-serif;
                 font-weight: 800;
                 font-size: 11.5px;
+                line-height: 1.2;
                 color: #141416;
-                max-width: 125px;
+                max-width: 130px;
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
               ">
-                ${nameplateTitle}
+                ${labelText}
               </span>
-
-              <!-- Title / Rating Tier Tag -->
-              <span style="
-                background: ${metrics.fill};
-                color: #141416;
-                font-family: 'Baloo 2', sans-serif;
-                font-weight: 800;
-                font-size: 9.5px;
-                padding: 1px 5px;
-                border-radius: 4px;
-                border: 1px solid #141416;
-              ">
-                ${nameplateRole}
-              </span>
+              ${inlineTierBadge}
             </div>
 
-            <!-- Downward Pointer Arrow connecting label to sprite -->
             <div style="
               width: 0;
               height: 0;
@@ -291,7 +288,7 @@ function createRpgFoodIcon(group: Place[], isZoomedIn: boolean) {
           </div>
         </div>
 
-        <!-- 🍜 CHIBI PIXEL FOOD SPRITE -->
+        <!-- Chibi Pixel Food Sprite -->
         <div class="rpg-chibi-box">
           ${chibiSvg}
           ${clusterCountBadge}
@@ -370,6 +367,9 @@ export default function LeafletMapComponent({ places }: MapProps) {
   const router = useRouter();
   const [userPos, setUserPos] = useState<[number, number]>([3.1292, 101.6784]);
   const [currentZoom, setCurrentZoom] = useState<number>(14);
+  
+  // Track which popup is currently open to hide its overhead label
+  const [openPopupKey, setOpenPopupKey] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'geolocation' in navigator) {
@@ -393,7 +393,6 @@ export default function LeafletMapComponent({ places }: MapProps) {
 
   const isZoomedIn = currentZoom >= ZOOM_LABEL_THRESHOLD;
 
-  // Collision handling for close spots
   const groupedPlaceMarkers = useMemo(() => {
     if (!isZoomedIn) {
       return places.map((p) => ({
@@ -405,8 +404,8 @@ export default function LeafletMapComponent({ places }: MapProps) {
     }
 
     const clusters: { key: string; lat: number; lng: number; items: Place[] }[] = [];
-    const LAT_PROXIMITY = 0.0007;
-    const LNG_PROXIMITY = 0.0007;
+    const LAT_PROXIMITY = 0.0006;
+    const LNG_PROXIMITY = 0.0006;
 
     places.forEach((place) => {
       const pLat = Number(place.lat);
@@ -453,16 +452,21 @@ export default function LeafletMapComponent({ places }: MapProps) {
           </Popup>
         </Marker>
 
-        {/* 🍜 Chibi Pixel Food Markers with RPG Overhead Nameplates */}
+        {/* 🍜 Compact Markers */}
         {groupedPlaceMarkers.map((group) => {
           const isCluster = group.items.length > 1;
           const firstPlace = group.items[0];
+          const isThisPopupOpen = openPopupKey === group.key;
 
           return (
             <Marker
               key={group.key}
               position={[group.lat, group.lng]}
-              icon={createRpgFoodIcon(group.items, isZoomedIn)}
+              icon={createRpgFoodIcon(group.items, isZoomedIn, isThisPopupOpen)}
+              eventHandlers={{
+                popupopen: () => setOpenPopupKey(group.key),
+                popupclose: () => setOpenPopupKey(null),
+              }}
             >
               <Popup className="bauhaus-leaflet-popup" closeButton={false}>
                 {isCluster ? (
@@ -494,8 +498,8 @@ export default function LeafletMapComponent({ places }: MapProps) {
                                 {item.category}
                               </div>
                             </div>
-                            <span className="text-xs shrink-0">
-                              {item.is_requested ? '🎯' : badge.emoji}
+                            <span className="text-xs shrink-0 font-bold">
+                              {item.is_requested ? '🎯' : `${badge.emoji} ${badge.label}`}
                             </span>
                           </div>
                         );
@@ -531,7 +535,7 @@ export default function LeafletMapComponent({ places }: MapProps) {
                           <span className="font-baloo font-extrabold text-[11px] truncate block">
                             {firstPlace.is_requested
                               ? '🎯 Requested'
-                              : RATING_TIERS[firstPlace.current_tier || 'mamadei']?.label}
+                              : `${RATING_TIERS[firstPlace.current_tier || 'mamadei']?.emoji} ${RATING_TIERS[firstPlace.current_tier || 'mamadei']?.label}`}
                           </span>
                         </div>
                         <div className="bg-white p-1.5 rounded-lg border border-bau-black text-bau-black">
@@ -544,11 +548,12 @@ export default function LeafletMapComponent({ places }: MapProps) {
                         </div>
                       </div>
 
+                      {/* 🚀 Changed label to 'View Details →' */}
                       <button
                         onClick={() => router.push(`/places/${firstPlace.id}`)}
                         className="w-full bg-bau-black text-bau-cream border-[2px] border-bau-black py-2 rounded-xl font-baloo font-extrabold text-xs shadow-bau-sm active:translate-x-0.5 active:translate-y-0.5 transition-transform"
                       >
-                        View Full Verdict →
+                        View Details →
                       </button>
                     </div>
                   </div>
