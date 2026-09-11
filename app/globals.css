@@ -152,24 +152,46 @@ body {
 }
 
 /* =========================================================
-   👾 MONSTER MARKER & ZOOM-BASED LEVEL OF DETAIL (LoD)
+   🎮 RPG OVERHEAD NAMEPLATE & CHIBI FOOD STYLES
    ========================================================= */
 
-/* Base container for Leaflet divIcon */
-.monster-marker-container {
+.rpg-food-marker-container {
   background: transparent !important;
   border: none !important;
 }
 
-.monster-marker-wrapper {
+.rpg-marker-wrapper {
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: flex-end;
+}
+
+/* 🏷️ RPG Floating Nameplate (Positioned above the avatar) */
+.rpg-nameplate {
+  position: absolute;
+  bottom: 46px; /* Sits right on top of the chibi sprite */
+  left: 50%;
+  transform: translateX(-50%) translateY(4px) scale(0.9);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  z-index: 20;
+}
+
+/* Smooth zoom-in or tap-to-inspect reveal */
+.zoom-expanded .rpg-nameplate,
+.tap-expanded .rpg-nameplate {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
   pointer-events: auto;
 }
 
-/* Monster Creature SVG Wrapper */
-.monster-icon-box {
+/* Chibi food bounce tap response */
+.rpg-chibi-box {
   width: 44px;
   height: 44px;
   display: flex;
@@ -177,58 +199,14 @@ body {
   justify-content: center;
   filter: drop-shadow(0 3px 2px rgba(20, 20, 22, 0.45));
   cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
   z-index: 10;
-  flex-shrink: 0;
-  transition: transform 0.15s ease-out;
 }
 
-.monster-icon-box:active {
+.rpg-chibi-box:hover {
+  transform: scale(1.12);
+}
+
+.rpg-chibi-box:active {
   transform: scale(0.92);
-}
-
-/* Expandable Name + Rating Badge */
-.monster-label-pill {
-  position: absolute;
-  left: 36px; /* Sits directly beside the creature */
-  white-space: nowrap;
-  pointer-events: auto;
-  transform-origin: left center;
-  
-  /* Smooth CSS transition for Level of Detail reveal */
-  opacity: 0;
-  transform: scale(0.85) translateX(-8px);
-  pointer-events: none;
-  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  z-index: 9;
-}
-
-/* When zoomed in (>= Zoom 15) OR tapped to inspect: reveal label */
-.zoom-expanded .monster-label-pill,
-.tap-expanded .monster-label-pill {
-  opacity: 1;
-  transform: scale(1) translateX(0);
-  pointer-events: auto;
-}
-
-/* Multi-Place Hawker Collision Badge */
-.monster-collision-count {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 4px;
-  border-radius: 9999px;
-  background-color: #FF3B30;
-  color: #FFFFFF;
-  border: 2px solid #141416;
-  font-family: 'Baloo 2', sans-serif;
-  font-weight: 800;
-  font-size: 11px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 1.5px 1.5px 0px #141416;
-  z-index: 20;
 }

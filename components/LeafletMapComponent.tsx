@@ -12,22 +12,19 @@ interface MapProps {
 }
 
 export const ZOOM_LABEL_THRESHOLD = 15;
-const LABEL_COLLISION_WIDTH = 160; 
-const LABEL_COLLISION_HEIGHT = 48;
 
 // Mapping to Tailwind theme.extend.colors.tier
-const TIER_COLORS: Record<string, { body: string; accent: string; label: string; text: string }> = {
-  jengggg: { body: '#FFCC00', accent: '#D99B00', label: '🔥 Jengggg', text: '#141416' },
-  hociakk: { body: '#00B368', accent: '#007A43', label: '🤤 Hociakk', text: '#FFFFFF' },
-  mamadei: { body: '#F4EEDC', accent: '#C8BEA5', label: '😐 Ma Ma Dei', text: '#141416' },
-  hmmm:    { body: '#A0A4B8', accent: '#6E7285', label: '🤨 Hmmm', text: '#FFFFFF' },
-  ewww:    { body: '#7B3294', accent: '#4E1B60', label: '😖 Ewww', text: '#FFFFFF' },
+const TIER_METRICS: Record<
+  string,
+  { fill: string; accent: string; title: string; level: string; border: string }
+> = {
+  jengggg: { fill: '#FFCC00', accent: '#E5A700', title: '🔥 God Tier', level: 'Lv.99 Boss', border: '#FFCC00' },
+  hociakk: { fill: '#00B368', accent: '#00854E', title: '🤤 Delicious', level: 'Lv.75 Elite', border: '#00B368' },
+  mamadei: { fill: '#F4EEDC', accent: '#D1C6A9', title: '😐 Balanced', level: 'Lv.40 Normal', border: '#141416' },
+  hmmm:    { fill: '#A0A4B8', accent: '#7A7E94', title: '🤨 Suspicious', level: 'Lv.20 Risky', border: '#A0A4B8' },
+  ewww:    { fill: '#7B3294', accent: '#501C63', title: '😖 Cursed', level: 'Lv.1 Hazard', border: '#7B3294' },
 };
 
-/**
- * 🎲 Deterministic Hash Generator
- * Converts place ID into pseudo-random integers so every place has a permanent unique look.
- */
 function hashString(str: string) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -38,221 +35,272 @@ function hashString(str: string) {
 }
 
 /**
- * 👾 Procedural Modular Monster SVG Generator
- * Generates endless monster combinations based on Place ID + Tier Color
+ * 🍜 CHIBI PIXEL ART FOOD GENERATOR
+ * Generates 16-bit cute Malaysian food sprites with little faces based on place category & ID
  */
-function getProceduralMonsterSvg(seedStr: string, color: string, accent: string) {
-  const seed = hashString(seedStr || 'monster');
+function getChibiPixelFoodSvg(seedStr: string, category: string, tierColor: string, accentColor: string) {
+  const seed = hashString(seedStr || 'food');
+  const cat = (category || '').toLowerCase();
 
-  // Trait variations
-  const bodyShape = seed % 4;        // 0: Rounded Box, 1: Slime/Dome, 2: Oval, 3: Horned Bulb
-  const earType = (seed >> 2) % 5;   // 0: Devil Horns, 1: Bat Wings, 2: Antennae, 3: Spikes, 4: Cat Ears
-  const eyeStyle = (seed >> 4) % 4;  // 0: Two Big Eyes, 1: One Giant Cyclops, 2: Three Alien Eyes, 3: Winking
-  const mouthStyle = (seed >> 6) % 4;// 0: Sharp Fangs, 1: Buck Teeth, 2: Shark Grin, 3: Tongue Out
-  const bellyStyle = (seed >> 8) % 3;// 0: Round Belly, 1: Dino Scales, 2: Stitches
+  // Determine food archetype based on category / seed
+  let foodType = seed % 5;
+  if (cat.includes('nasi') || cat.includes('kandar') || cat.includes('rice') || cat.includes('street')) {
+    foodType = 0; // Steaming Noodle/Rice Bowl
+  } else if (cat.includes('burger') || cat.includes('western')) {
+    foodType = 1; // Kawaii Chubby Burger
+  } else if (cat.includes('satay') || cat.includes('bbq') || cat.includes('mookata')) {
+    foodType = 2; // Pixel Satay Skewers
+  } else if (cat.includes('cafe') || cat.includes('coffee') || cat.includes('kopitiam') || cat.includes('boba')) {
+    foodType = 3; // Bubble Tea / Kopi Kaw Cup
+  } else if (cat.includes('dim sum') || cat.includes('dumpling') || cat.includes('snack')) {
+    foodType = 4; // Cute Dim Sum Bao
+  }
 
-  // 1. EAR / HORN VARIATIONS
-  let earsSvg = '';
-  if (earType === 0) {
-    // Devil Horns
-    earsSvg = `
-      <path d="M10 13L4 3L15 8" fill="${accent}" stroke="#141416" stroke-width="2.5" stroke-linejoin="round"/>
-      <path d="M30 13L36 3L25 8" fill="${accent}" stroke="#141416" stroke-width="2.5" stroke-linejoin="round"/>
-    `;
-  } else if (earType === 1) {
-    // Bat / Goblin Wings
-    earsSvg = `
-      <path d="M8 16L1 11L6 21" fill="${accent}" stroke="#141416" stroke-width="2.2" stroke-linejoin="round"/>
-      <path d="M32 16L39 11L34 21" fill="${accent}" stroke="#141416" stroke-width="2.2" stroke-linejoin="round"/>
-    `;
-  } else if (earType === 2) {
-    // Alien Antennae with Bobble
-    earsSvg = `
-      <path d="M14 10L11 3" stroke="#141416" stroke-width="2.5" stroke-linecap="round"/>
-      <circle cx="11" cy="3" r="3" fill="${accent}" stroke="#141416" stroke-width="2"/>
-      <path d="M26 10L29 3" stroke="#141416" stroke-width="2.5" stroke-linecap="round"/>
-      <circle cx="29" cy="3" r="3" fill="${accent}" stroke="#141416" stroke-width="2"/>
-    `;
-  } else if (earType === 3) {
-    // Tri-Spike Mohawk
-    earsSvg = `
-      <polygon points="14,10 16,3 18,10" fill="${accent}" stroke="#141416" stroke-width="2"/>
-      <polygon points="19,9 20,2 22,9" fill="${accent}" stroke="#141416" stroke-width="2"/>
-      <polygon points="23,10 25,3 27,10" fill="${accent}" stroke="#141416" stroke-width="2"/>
-    `;
-  } else {
-    // Fluffy Cat Tufts
-    earsSvg = `
-      <polygon points="9,14 13,5 18,11" fill="${accent}" stroke="#141416" stroke-width="2.5"/>
-      <polygon points="31,14 27,5 22,11" fill="${accent}" stroke="#141416" stroke-width="2.5"/>
+  // 1. STEAMING RICE / NOODLE BOWL
+  if (foodType === 0) {
+    return `
+      <svg viewBox="0 0 32 32" width="38" height="38" shape-rendering="crispEdges">
+        <!-- Steam -->
+        <rect x="9" y="4" width="2" height="3" fill="#FFFFFF" opacity="0.8"/>
+        <rect x="15" y="2" width="2" height="4" fill="#FFFFFF" opacity="0.8"/>
+        <rect x="21" y="4" width="2" height="3" fill="#FFFFFF" opacity="0.8"/>
+        <!-- Chopsticks -->
+        <line x1="20" y1="5" x2="28" y2="13" stroke="#8B5A2B" stroke-width="1.8"/>
+        <!-- Food Filling inside bowl -->
+        <rect x="7" y="11" width="18" height="4" fill="${accentColor}"/>
+        <rect x="13" y="10" width="6" height="2" fill="#FF3B30"/>
+        <!-- Bowl Body -->
+        <rect x="5" y="14" width="22" height="10" rx="3" fill="${tierColor}" stroke="#141416" stroke-width="1.8"/>
+        <rect x="9" y="24" width="14" height="2" fill="#141416"/>
+        <!-- Chibi Eyes & Smile -->
+        <rect x="10" y="17" width="2" height="3" fill="#141416"/>
+        <rect x="20" y="17" width="2" height="3" fill="#141416"/>
+        <rect x="14" y="20" width="4" height="1.5" fill="#141416"/>
+        <!-- Cute Blush -->
+        <rect x="8" y="19" width="2" height="1" fill="#FF3B30"/>
+        <rect x="22" y="19" width="2" height="1" fill="#FF3B30"/>
+      </svg>
     `;
   }
 
-  // 2. BODY VARIATIONS
-  let bodySvg = '';
-  if (bodyShape === 0) {
-    // Chubby Rounded Rectangle
-    bodySvg = `<rect x="6" y="9" width="28" height="27" rx="12" fill="${color}" stroke="#141416" stroke-width="2.5"/>`;
-  } else if (bodyShape === 1) {
-    // Slime Dome
-    bodySvg = `<path d="M7 36C6 24 9 10 20 10C31 10 34 24 33 36C27 37 13 37 7 36Z" fill="${color}" stroke="#141416" stroke-width="2.5"/>`;
-  } else if (bodyShape === 2) {
-    // Big Egg Oval
-    bodySvg = `<ellipse cx="20" cy="23" rx="15" ry="14" fill="${color}" stroke="#141416" stroke-width="2.5"/>`;
-  } else {
-    // Bean / Ghost Form
-    bodySvg = `<path d="M8 20C8 12 13 9 20 9C27 9 32 12 32 20C32 29 29 36 26 36C23 36 22 33 20 33C18 33 17 36 14 36C11 36 8 29 8 20Z" fill="${color}" stroke="#141416" stroke-width="2.5"/>`;
-  }
-
-  // 3. BELLY ACCENTS
-  let bellySvg = '';
-  if (bellyStyle === 0) {
-    // Classic Belly Oval
-    bellySvg = `<ellipse cx="20" cy="27" rx="7" ry="5.5" fill="${accent}" opacity="0.45"/>`;
-  } else if (bellyStyle === 1) {
-    // Dino Scales / Stripes
-    bellySvg = `
-      <circle cx="20" cy="24" r="1.5" fill="${accent}"/>
-      <circle cx="16" cy="28" r="1.5" fill="${accent}"/>
-      <circle cx="24" cy="28" r="1.5" fill="${accent}"/>
-    `;
-  } else {
-    // Stitched Patch
-    bellySvg = `
-      <line x1="17" y1="26" x2="23" y2="28" stroke="#141416" stroke-width="1.8"/>
-      <line x1="18" y1="25" x2="19" y2="28" stroke="#141416" stroke-width="1.5"/>
-      <line x1="21" y1="26" x2="22" y2="29" stroke="#141416" stroke-width="1.5"/>
+  // 2. CHUBBY PIXEL BURGER
+  if (foodType === 1) {
+    return `
+      <svg viewBox="0 0 32 32" width="38" height="38" shape-rendering="crispEdges">
+        <!-- Top Sesame Bun -->
+        <rect x="6" y="8" width="20" height="7" rx="3" fill="${tierColor}" stroke="#141416" stroke-width="1.8"/>
+        <rect x="10" y="10" width="2" height="1" fill="#FFFFFF"/>
+        <rect x="16" y="9" width="2" height="1" fill="#FFFFFF"/>
+        <rect x="20" y="11" width="2" height="1" fill="#FFFFFF"/>
+        <!-- Lettuce & Tomato -->
+        <rect x="5" y="15" width="22" height="2" fill="#00B368"/>
+        <rect x="7" y="17" width="18" height="2" fill="#FF3B30"/>
+        <!-- Patty -->
+        <rect x="5" y="19" width="22" height="4" rx="1" fill="#5C3317" stroke="#141416" stroke-width="1.5"/>
+        <!-- Bottom Bun -->
+        <rect x="6" y="23" width="20" height="4" rx="2" fill="${tierColor}" stroke="#141416" stroke-width="1.8"/>
+        <!-- Chibi Face on Top Bun -->
+        <rect x="11" y="11" width="2" height="2" fill="#141416"/>
+        <rect x="19" y="11" width="2" height="2" fill="#141416"/>
+        <rect x="14" y="13" width="4" height="1" fill="#141416"/>
+      </svg>
     `;
   }
 
-  // 4. EYE VARIATIONS
-  let eyesSvg = '';
-  if (eyeStyle === 0) {
-    // Standard Cute Twin Eyes
-    eyesSvg = `
-      <circle cx="14" cy="18" r="4.5" fill="#FFFFFF" stroke="#141416" stroke-width="2"/>
-      <circle cx="26" cy="18" r="4.5" fill="#FFFFFF" stroke="#141416" stroke-width="2"/>
-      <circle cx="15.5" cy="17.5" r="2" fill="#141416"/>
-      <circle cx="24.5" cy="17.5" r="2" fill="#141416"/>
-      <circle cx="16.5" cy="16.5" r="0.8" fill="#FFFFFF"/>
-      <circle cx="25.5" cy="16.5" r="0.8" fill="#FFFFFF"/>
-    `;
-  } else if (eyeStyle === 1) {
-    // Big Giant Cyclops Eye
-    eyesSvg = `
-      <circle cx="20" cy="17" r="6.5" fill="#FFFFFF" stroke="#141416" stroke-width="2.2"/>
-      <circle cx="20" cy="17" r="3" fill="#141416"/>
-      <circle cx="21.5" cy="15.5" r="1" fill="#FFFFFF"/>
-    `;
-  } else if (eyeStyle === 2) {
-    // Tri-Eye Alien
-    eyesSvg = `
-      <circle cx="13" cy="18" r="3.5" fill="#FFFFFF" stroke="#141416" stroke-width="1.8"/>
-      <circle cx="27" cy="18" r="3.5" fill="#FFFFFF" stroke="#141416" stroke-width="1.8"/>
-      <circle cx="20" cy="14" r="3" fill="#FFFFFF" stroke="#141416" stroke-width="1.8"/>
-      <circle cx="14" cy="18" r="1.5" fill="#141416"/>
-      <circle cx="26" cy="18" r="1.5" fill="#141416"/>
-      <circle cx="20" cy="14" r="1.2" fill="#141416"/>
-    `;
-  } else {
-    // Winking / Mischievous Eyes
-    eyesSvg = `
-      <circle cx="14" cy="18" r="4.5" fill="#FFFFFF" stroke="#141416" stroke-width="2"/>
-      <circle cx="15.5" cy="17.5" r="2" fill="#141416"/>
-      <path d="M23 18C25 15 28 15 30 18" stroke="#141416" stroke-width="2.5" stroke-linecap="round"/>
+  // 3. PIXEL SATAY SKEWER / BBQ
+  if (foodType === 2) {
+    return `
+      <svg viewBox="0 0 32 32" width="38" height="38" shape-rendering="crispEdges">
+        <!-- Skewer Stick -->
+        <line x1="8" y1="28" x2="24" y2="4" stroke="#D2B48C" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- Meat Cubes in Tier Color -->
+        <rect x="17" y="5" width="8" height="6" rx="2" fill="${tierColor}" stroke="#141416" stroke-width="1.5"/>
+        <rect x="13" y="11" width="8" height="6" rx="2" fill="${accentColor}" stroke="#141416" stroke-width="1.5"/>
+        <rect x="9" y="17" width="8" height="6" rx="2" fill="${tierColor}" stroke="#141416" stroke-width="1.5"/>
+        <!-- Chibi Face on Middle Meat -->
+        <rect x="15" y="13" width="1.5" height="1.5" fill="#141416"/>
+        <rect x="19" y="13" width="1.5" height="1.5" fill="#141416"/>
+        <rect x="17" y="15" width="2" height="1" fill="#141416"/>
+        <!-- Peanut Sauce Dip Drop -->
+        <circle cx="23" cy="23" r="3" fill="#FFCC00" stroke="#141416" stroke-width="1"/>
+      </svg>
     `;
   }
 
-  // 5. MOUTH & TEETH VARIATIONS
-  let mouthSvg = '';
-  if (mouthStyle === 0) {
-    // Vampire Dual Fangs
-    mouthSvg = `
-      <path d="M16 25C18 27 22 27 24 25" stroke="#141416" stroke-width="2" stroke-linecap="round"/>
-      <polygon points="17,25 18,27.5 19,25" fill="#FFFFFF"/>
-      <polygon points="21,25 22,27.5 23,25" fill="#FFFFFF"/>
-    `;
-  } else if (mouthStyle === 1) {
-    // Monster Buck Tooth
-    mouthSvg = `
-      <path d="M16 25H24" stroke="#141416" stroke-width="2" stroke-linecap="round"/>
-      <rect x="18.5" y="25" width="3" height="3" fill="#FFFFFF" stroke="#141416" stroke-width="1"/>
-    `;
-  } else if (mouthStyle === 2) {
-    // Wavy Shark Grin
-    mouthSvg = `
-      <path d="M14 24C16 28 24 28 26 24Z" fill="#141416"/>
-      <polygon points="16,24 18,26 20,24" fill="#FFFFFF"/>
-      <polygon points="20,24 22,26 24,24" fill="#FFFFFF"/>
-    `;
-  } else {
-    // Playful Tongue Sticking Out
-    mouthSvg = `
-      <path d="M16 24C18 26 22 26 24 24" stroke="#141416" stroke-width="2" stroke-linecap="round"/>
-      <path d="M18 25C18 28 22 28 22 25Z" fill="#FF3B30" stroke="#141416" stroke-width="1.2"/>
+  // 4. BUBBLE TEA / KOPI CUP
+  if (foodType === 3) {
+    return `
+      <svg viewBox="0 0 32 32" width="38" height="38" shape-rendering="crispEdges">
+        <!-- Straw -->
+        <line x1="17" y1="3" x2="20" y2="12" stroke="#FF3B30" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- Cup Lid -->
+        <rect x="7" y="10" width="18" height="3" rx="1.5" fill="#141416"/>
+        <!-- Cup Body -->
+        <path d="M8 13L10 27H22L24 13Z" fill="${tierColor}" stroke="#141416" stroke-width="1.8"/>
+        <!-- Boba Pearls -->
+        <circle cx="12" cy="24" r="1.5" fill="#141416"/>
+        <circle cx="16" cy="25" r="1.5" fill="#141416"/>
+        <circle cx="20" cy="24" r="1.5" fill="#141416"/>
+        <!-- Chibi Eyes & Blush -->
+        <rect x="12" y="16" width="2" height="2" fill="#141416"/>
+        <rect x="18" y="16" width="2" height="2" fill="#141416"/>
+        <rect x="15" y="18" width="2" height="1" fill="#141416"/>
+        <rect x="10" y="18" width="1.5" height="1" fill="#FF3B30"/>
+        <rect x="20" y="18" width="1.5" height="1" fill="#FF3B30"/>
+      </svg>
     `;
   }
 
+  // 5. KAWAII STEAMED BAO / DIM SUM
   return `
-    <svg viewBox="0 0 40 40" width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      ${earsSvg}
-      ${bodySvg}
-      ${bellySvg}
-      ${eyesSvg}
-      ${mouthSvg}
+    <svg viewBox="0 0 32 32" width="38" height="38" shape-rendering="crispEdges">
+      <!-- Bamboo Mat -->
+      <ellipse cx="16" cy="26" rx="12" ry="3.5" fill="#D2B48C" stroke="#141416" stroke-width="1.5"/>
+      <!-- Bao Body in Tier Color -->
+      <path d="M8 23C7 16 11 11 16 10C21 11 25 16 24 23C22 25 10 25 8 23Z" fill="${tierColor}" stroke="#141416" stroke-width="1.8"/>
+      <!-- Top Fold Twist -->
+      <path d="M14 10C16 8 16 8 18 10" stroke="#141416" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- Chibi Face -->
+      <rect x="12" y="16" width="2" height="2" fill="#141416"/>
+      <rect x="18" y="16" width="2" height="2" fill="#141416"/>
+      <rect x="14" y="19" width="4" height="1.5" rx="0.5" fill="#141416"/>
+      <rect x="10" y="18" width="1.5" height="1" fill="#FF3B30"/>
+      <rect x="20" y="18" width="1.5" height="1" fill="#FF3B30"/>
     </svg>
   `;
 }
 
 /**
- * Creates Leaflet divIcon with the uniquely generated monster
+ * 🏷️ Creates Leaflet divIcon with RPG Player-Style Overhead Nameplate
  */
-function createMonsterIcon(group: Place[], isZoomedIn: boolean) {
+function createRpgFoodIcon(group: Place[], isZoomedIn: boolean) {
   const primary = group[0];
   const isCluster = group.length > 1;
   const safeTier = primary.current_tier || 'mamadei';
-  const tierData = TIER_COLORS[safeTier] || TIER_COLORS.mamadei;
+  const metrics = TIER_METRICS[safeTier] || TIER_METRICS.mamadei;
 
-  // Generate completely custom creature using place ID / name as seed
-  const monsterSvg = getProceduralMonsterSvg(
+  const chibiSvg = getChibiPixelFoodSvg(
     primary.id || primary.name,
-    primary.is_requested ? '#FFFFFF' : tierData.body,
-    primary.is_requested ? '#D1D5DB' : tierData.accent
+    primary.category || '',
+    primary.is_requested ? '#FFFFFF' : metrics.fill,
+    primary.is_requested ? '#D1D5DB' : metrics.accent
   );
 
-  const clusterCountBadge = isCluster 
-    ? `<div class="monster-collision-count">${group.length}</div>`
+  const clusterCountBadge = isCluster
+    ? `<div style="
+        position: absolute;
+        top: -3px;
+        right: -3px;
+        background: #FF3B30;
+        color: #FFFFFF;
+        border: 2px solid #141416;
+        border-radius: 9999px;
+        font-family: 'Baloo 2', sans-serif;
+        font-weight: 800;
+        font-size: 10px;
+        min-width: 18px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 1.5px 1.5px 0px #141416;
+        z-index: 25;
+      ">${group.length}</div>`
     : '';
 
-  const labelText = isCluster
-    ? `${group.length} Places (Hawker Hub)`
-    : primary.name;
-
-  const tierBadge = isCluster
-    ? `<span style="background:#141416; color:#FFFDF7; padding: 2px 6px; border-radius: 4px; font-size: 9px;">Tap to view</span>`
-    : `<span style="background:${tierData.body}; color:${tierData.text}; padding: 2px 6px; border-radius: 4px; border: 1.5px solid #141416;">${primary.is_requested ? '🎯 Requested' : tierData.label}</span>`;
+  const nameplateTitle = isCluster ? `Hawker Hub (${group.length})` : primary.name;
+  const nameplateRole = isCluster ? '🎯 Quest Cluster' : primary.is_requested ? '🎯 Bounty' : metrics.title;
+  const nameplateLevel = isCluster ? 'Lv.MAX' : metrics.level;
 
   return L.divIcon({
-    className: 'monster-marker-container',
+    className: 'rpg-food-marker-container',
     html: `
-      <div class="monster-marker-wrapper ${isZoomedIn ? 'zoom-expanded' : ''}">
-        <div class="monster-icon-box">
-          ${monsterSvg}
-          ${clusterCountBadge}
-        </div>
-        <div class="monster-label-pill">
-          <div style="background:#FFFDF7; border: 2px solid #141416; border-radius: 10px; padding: 3px 8px; box-shadow: 2px 2px 0px #141416; display: flex; align-items: center; gap: 6px;">
-            <span style="font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 11px; color: #141416; max-width: 110px; overflow: hidden; text-overflow: ellipsis;">
-              ${labelText}
-            </span>
-            ${tierBadge}
+      <div class="rpg-marker-wrapper ${isZoomedIn ? 'zoom-expanded' : ''}" style="width: 44px; height: 44px;">
+        
+        <!-- 🏷️ RPG OVERHEAD NAMEPLATE (Centered above the sprite) -->
+        <div class="rpg-nameplate">
+          <div style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+          ">
+            <!-- Main Badge Container -->
+            <div style="
+              background: #FFFDF7;
+              border: 2px solid #141416;
+              border-radius: 8px;
+              padding: 2px 7px;
+              display: flex;
+              align-items: center;
+              gap: 5px;
+              box-shadow: 2px 2px 0px #141416;
+            ">
+              <!-- RPG Level Tag -->
+              <span style="
+                background: #141416;
+                color: #FFCC00;
+                font-family: 'Space Grotesk', sans-serif;
+                font-size: 8.5px;
+                font-weight: 800;
+                padding: 1px 4px;
+                border-radius: 4px;
+                letter-spacing: 0.3px;
+              ">
+                ${nameplateLevel}
+              </span>
+
+              <!-- Place Name -->
+              <span style="
+                font-family: 'Baloo 2', sans-serif;
+                font-weight: 800;
+                font-size: 11.5px;
+                color: #141416;
+                max-width: 125px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+              ">
+                ${nameplateTitle}
+              </span>
+
+              <!-- Title / Rating Tier Tag -->
+              <span style="
+                background: ${metrics.fill};
+                color: #141416;
+                font-family: 'Baloo 2', sans-serif;
+                font-weight: 800;
+                font-size: 9.5px;
+                padding: 1px 5px;
+                border-radius: 4px;
+                border: 1px solid #141416;
+              ">
+                ${nameplateRole}
+              </span>
+            </div>
+
+            <!-- Downward Pointer Arrow connecting label to sprite -->
+            <div style="
+              width: 0;
+              height: 0;
+              border-left: 5px solid transparent;
+              border-right: 5px solid transparent;
+              border-top: 5px solid #141416;
+              margin-top: -1px;
+            "></div>
           </div>
+        </div>
+
+        <!-- 🍜 CHIBI PIXEL FOOD SPRITE -->
+        <div class="rpg-chibi-box">
+          ${chibiSvg}
+          ${clusterCountBadge}
         </div>
       </div>
     `,
     iconSize: [44, 44],
     iconAnchor: [22, 22],
-    popupAnchor: [0, -28],
+    popupAnchor: [0, -32],
   });
 }
 
@@ -345,7 +393,7 @@ export default function LeafletMapComponent({ places }: MapProps) {
 
   const isZoomedIn = currentZoom >= ZOOM_LABEL_THRESHOLD;
 
-  // Collision detection for hawker hubs
+  // Collision handling for close spots
   const groupedPlaceMarkers = useMemo(() => {
     if (!isZoomedIn) {
       return places.map((p) => ({
@@ -405,7 +453,7 @@ export default function LeafletMapComponent({ places }: MapProps) {
           </Popup>
         </Marker>
 
-        {/* 👾 Procedural Diverse Monster Markers */}
+        {/* 🍜 Chibi Pixel Food Markers with RPG Overhead Nameplates */}
         {groupedPlaceMarkers.map((group) => {
           const isCluster = group.items.length > 1;
           const firstPlace = group.items[0];
@@ -414,7 +462,7 @@ export default function LeafletMapComponent({ places }: MapProps) {
             <Marker
               key={group.key}
               position={[group.lat, group.lng]}
-              icon={createMonsterIcon(group.items, isZoomedIn)}
+              icon={createRpgFoodIcon(group.items, isZoomedIn)}
             >
               <Popup className="bauhaus-leaflet-popup" closeButton={false}>
                 {isCluster ? (
