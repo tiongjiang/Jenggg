@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { useRouter } from 'next/navigation';
 import { Place } from '@/lib/supabase';
@@ -46,7 +46,7 @@ function getChibiPixelFoodSvg(seedStr: string, category: string, tierColor: stri
     foodType = 2;
   } else if (cat.includes('cafe') || cat.includes('coffee') || cat.includes('kopitiam') || cat.includes('boba')) {
     foodType = 3;
-  } else if (cat.includes('dim sum') || cat.includes('dumpling') || cat.includes('snack')) {
+  } else {
     foodType = 4;
   }
 
@@ -137,66 +137,20 @@ function getChibiPixelFoodSvg(seedStr: string, category: string, tierColor: stri
 
 function getInlineTierIconBadge(safeTier: string, isRequested: boolean, isCluster: boolean) {
   if (isCluster) {
-    return `
-      <span style="
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: #141416;
-        color: #FFFDF7;
-        font-size: 10px;
-        flex-shrink: 0;
-      ">👥</span>
-    `;
+    return `<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#141416;color:#FFFDF7;font-size:10px;flex-shrink:0;">👥</span>`;
   }
-
   if (isRequested) {
-    return `
-      <span style="
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: #FF3B30;
-        border: 1.5px solid #141416;
-        color: #FFFFFF;
-        font-size: 10px;
-        flex-shrink: 0;
-      ">🎯</span>
-    `;
+    return `<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#FF3B30;border:1.5px solid #141416;color:#FFFFFF;font-size:10px;flex-shrink:0;">🎯</span>`;
   }
-
   const metrics = TIER_METRICS[safeTier] || TIER_METRICS.mamadei;
   const ratingDef = RATING_TIERS[safeTier] || RATING_TIERS.mamadei;
-
   return `
-    <span style="
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: ${metrics.fill};
-      border: 1.5px solid #141416;
-      font-size: 10px;
-      line-height: 1;
-      flex-shrink: 0;
-    ">
+    <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:${metrics.fill};border:1.5px solid #141416;font-size:10px;line-height:1;flex-shrink:0;">
       ${ratingDef.emoji}
     </span>
   `;
 }
 
-/**
- * 🏷️ Creates Marker divIcon
- * @param isPopupOpen when true, completely hides the overhead nameplate so it doesn't overlap the popup card!
- */
 function createRpgFoodIcon(group: Place[], isZoomedIn: boolean, isPopupOpen: boolean) {
   const primary = group[0];
   const isCluster = group.length > 1;
@@ -211,84 +165,28 @@ function createRpgFoodIcon(group: Place[], isZoomedIn: boolean, isPopupOpen: boo
   );
 
   const clusterCountBadge = isCluster
-    ? `<div style="
-        position: absolute;
-        top: -3px;
-        right: -3px;
-        background: #FF3B30;
-        color: #FFFFFF;
-        border: 2px solid #141416;
-        border-radius: 9999px;
-        font-family: 'Baloo 2', sans-serif;
-        font-weight: 800;
-        font-size: 10px;
-        min-width: 18px;
-        height: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 1.5px 1.5px 0px #141416;
-        z-index: 25;
-      ">${group.length}</div>`
+    ? `<div style="position:absolute;top:-3px;right:-3px;background:#FF3B30;color:#FFFFFF;border:2px solid #141416;border-radius:9999px;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:10px;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;box-shadow:1.5px 1.5px 0px #141416;z-index:25;">${group.length}</div>`
     : '';
 
   const labelText = isCluster ? `Hawker Hub (${group.length})` : primary.name;
   const inlineTierBadge = getInlineTierIconBadge(safeTier, Boolean(primary.is_requested), isCluster);
-
-  // If the popup is open, suppress the overhead nameplate
   const showLabel = isZoomedIn && !isPopupOpen;
 
   return L.divIcon({
     className: 'rpg-food-marker-container',
     html: `
       <div class="rpg-marker-wrapper ${showLabel ? 'zoom-expanded' : ''}" style="width: 44px; height: 44px;">
-        
-        <!-- Overhead Label (hidden when popup is active) -->
         <div class="rpg-nameplate" style="${isPopupOpen ? 'display: none !important;' : ''}">
-          <div style="
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
-          ">
-            <div style="
-              background: #FFFDF7;
-              border: 2px solid #141416;
-              border-radius: 8px;
-              padding: 2.5px 7px;
-              display: flex;
-              align-items: center;
-              gap: 5px;
-              box-shadow: 2px 2px 0px #141416;
-            ">
-              <span style="
-                font-family: 'Baloo 2', sans-serif;
-                font-weight: 800;
-                font-size: 11.5px;
-                line-height: 1.2;
-                color: #141416;
-                max-width: 130px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-              ">
+          <div style="display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.25));">
+            <div style="background:#FFFDF7;border:2px solid #141416;border-radius:8px;padding:2.5px 7px;display:flex;align-items:center;gap:5px;box-shadow:2px 2px 0px #141416;">
+              <span style="font-family:'Baloo 2',sans-serif;font-weight:800;font-size:11.5px;line-height:1.2;color:#141416;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                 ${labelText}
               </span>
               ${inlineTierBadge}
             </div>
-
-            <div style="
-              width: 0;
-              height: 0;
-              border-left: 5px solid transparent;
-              border-right: 5px solid transparent;
-              border-top: 5px solid #141416;
-              margin-top: -1px;
-            "></div>
+            <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:5px solid #141416;margin-top:-1px;"></div>
           </div>
         </div>
-
-        <!-- Chibi Pixel Food Sprite -->
         <div class="rpg-chibi-box">
           ${chibiSvg}
           ${clusterCountBadge}
@@ -345,46 +243,71 @@ function getFallbackImage(category: string) {
   return 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80';
 }
 
-function MapEventsWatcher({ onZoomChange }: { onZoomChange: (zoom: number) => void }) {
+/**
+ * 📍 MAP STATE SYNC: Saves and listens to user map position in sessionStorage
+ */
+function MapLocationTracker({ onZoomChange }: { onZoomChange: (z: number) => void }) {
   const map = useMapEvents({
-    zoomend() {
+    moveend: () => {
+      const center = map.getCenter();
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('jenggg_map_lat', center.lat.toString());
+        sessionStorage.setItem('jenggg_map_lng', center.lng.toString());
+        sessionStorage.setItem('jenggg_map_zoom', map.getZoom().toString());
+      }
+    },
+    zoomend: () => {
       onZoomChange(map.getZoom());
     },
   });
   return null;
 }
 
-function MapController({ center }: { center: [number, number] }) {
-  const map = useMap();
-  useEffect(() => {
-    map.setView(center, 14, { animate: true });
-    setTimeout(() => map.invalidateSize(), 300);
-  }, [center, map]);
-  return null;
-}
-
 export default function LeafletMapComponent({ places }: MapProps) {
   const router = useRouter();
+  const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
   const [userPos, setUserPos] = useState<[number, number]>([3.1292, 101.6784]);
+  const [initialCenter, setInitialCenter] = useState<[number, number]>([3.1292, 101.6784]);
+  const [initialZoom, setInitialZoom] = useState<number>(14);
   const [currentZoom, setCurrentZoom] = useState<number>(14);
-  
-  // Track which popup is currently open to hide its overhead label
   const [openPopupKey, setOpenPopupKey] = useState<string | null>(null);
 
+  // 1. Check for saved location from previous view session
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => setUserPos([pos.coords.latitude, pos.coords.longitude]),
-        (err) => console.warn('GPS default to KL:', err.message),
-        { enableHighAccuracy: true, timeout: 5000 }
-      );
+    if (typeof window !== 'undefined') {
+      const savedLat = sessionStorage.getItem('jenggg_map_lat');
+      const savedLng = sessionStorage.getItem('jenggg_map_lng');
+      const savedZoom = sessionStorage.getItem('jenggg_map_zoom');
+
+      if (savedLat && savedLng) {
+        const center: [number, number] = [parseFloat(savedLat), parseFloat(savedLng)];
+        setInitialCenter(center);
+        if (savedZoom) {
+          setInitialZoom(parseInt(savedZoom, 10));
+          setCurrentZoom(parseInt(savedZoom, 10));
+        }
+      } else if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const gps: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+            setUserPos(gps);
+            setInitialCenter(gps);
+          },
+          (err) => console.warn('GPS default to KL:', err.message),
+          { enableHighAccuracy: true, timeout: 5000 }
+        );
+      }
     }
   }, []);
 
   function locateMe() {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition((pos) => {
-        setUserPos([pos.coords.latitude, pos.coords.longitude]);
+        const coords: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+        setUserPos(coords);
+        if (mapInstance) {
+          mapInstance.flyTo(coords, 16, { animate: true });
+        }
       });
     } else {
       alert('GPS Geolocation not supported by this browser.');
@@ -433,17 +356,19 @@ export default function LeafletMapComponent({ places }: MapProps) {
   return (
     <div className="w-full h-full relative overflow-hidden">
       <MapContainer
-        center={userPos}
-        zoom={14}
+        center={initialCenter}
+        zoom={initialZoom}
         zoomControl={false}
         attributionControl={false}
         className="w-full h-full"
+        ref={(m) => {
+          if (m) setMapInstance(m);
+        }}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png" maxZoom={19} />
-        <MapEventsWatcher onZoomChange={setCurrentZoom} />
-        <MapController center={userPos} />
+        <MapLocationTracker onZoomChange={setCurrentZoom} />
 
-        {/* 👤 Live User GPS Trainer Marker */}
+        {/* 👤 User GPS Trainer Marker */}
         <Marker position={userPos} icon={createUserTrainerIcon()}>
           <Popup className="bauhaus-leaflet-popup font-baloo font-bold" closeButton={false}>
             <div className="bg-bau-black text-bau-yellow border-2 border-bau-yellow rounded-xl px-3 py-1.5 shadow-bau text-xs text-center">
@@ -452,7 +377,7 @@ export default function LeafletMapComponent({ places }: MapProps) {
           </Popup>
         </Marker>
 
-        {/* 🍜 Compact Markers */}
+        {/* 🍜 Markers */}
         {groupedPlaceMarkers.map((group) => {
           const isCluster = group.items.length > 1;
           const firstPlace = group.items[0];
@@ -548,7 +473,6 @@ export default function LeafletMapComponent({ places }: MapProps) {
                         </div>
                       </div>
 
-                      {/* 🚀 Changed label to 'View Details →' */}
                       <button
                         onClick={() => router.push(`/places/${firstPlace.id}`)}
                         className="w-full bg-bau-black text-bau-cream border-[2px] border-bau-black py-2 rounded-xl font-baloo font-extrabold text-xs shadow-bau-sm active:translate-x-0.5 active:translate-y-0.5 transition-transform"

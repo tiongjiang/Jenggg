@@ -30,10 +30,12 @@ export default function PlaceDetailPage() {
   const [communityReviews, setCommunityReviews] = useState<ReviewItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 🔒 Security Check State
+  // Auth User check (Save Spot requires login, Admin check allows inline edit)
+  const [user, setUser] = useState<{ email?: string } | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
-  // Leave Community Review Form State
+  // Write Review State (Completely Open - No Login Required)
   const [showReviewForm, setShowForm] = useState(false);
   const [hunterName, setHunterName] = useState('');
   const [selectedTier, setSelectedTier] = useState<string>('jengggg');
@@ -41,7 +43,7 @@ export default function PlaceDetailPage() {
   const [comment, setComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
 
-  // ⚙️ Admin Edit Modal State
+  // ⚙️ Admin Edit Modal State (Full CRUD capability preserved)
   const [showAdminEditModal, setShowAdminEditModal] = useState(false);
   const [editForm, setEditForm] = useState({
     name: '',
@@ -61,28 +63,21 @@ export default function PlaceDetailPage() {
   const isFav = favorites.includes(placeId);
 
   useEffect(() => {
-    checkAdminPrivileges();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser({ email: session.user.email });
+        if (session.user.email === 'tiongjiang98@gmail.com') {
+          setIsAdmin(true);
+        }
+      }
+    });
     loadPlaceAndReviews();
   }, [placeId]);
-
-  // Check if current user is tiongjiang98@gmail.com
-  async function checkAdminPrivileges() {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user?.email === 'tiongjiang98@gmail.com') {
-        setIsAdmin(true);
-      }
-    } catch (err) {
-      console.error('Handshake failed:', err);
-    }
-  }
 
   async function loadPlaceAndReviews() {
     if (!placeId) return;
     try {
       setLoading(true);
-      
-      // 1. Fetch Spot
       const { data: pData } = await supabase.from('places').select('*').eq('id', placeId).single();
       if (pData) {
         setPlace(pData as Place);
@@ -99,13 +94,10 @@ export default function PlaceDetailPage() {
         });
       }
 
-      // 2. Fetch Reviews
       const { data: rData } = await supabase.from('reviews').select('*').eq('place_id', placeId).order('created_at', { ascending: false });
       if (rData) {
-        const official = rData.find((r) => r.is_official) || null;
-        const community = rData.filter((r) => !r.is_official);
-        setOfficialReview(official as ReviewItem);
-        setCommunityReviews(community as ReviewItem[]);
+        setOfficialReview(rData.find((r) => r.is_official) || null);
+        setCommunityReviews(rData.filter((r) => !r.is_official));
       }
     } catch (err) {
       console.error('Error fetching details:', err);
@@ -114,7 +106,24 @@ export default function PlaceDetailPage() {
     }
   }
 
-  // Handle Community Review Submission
+  // 1. Save Spot logic: requires login
+  function handleSaveClick() {
+    if (!user) {
+      setShowLoginPrompt(true);
+      return;
+    }
+    toggleFavorite(placeId);
+  }
+
+  // Google Login redirect
+  async function handleGoogleLogin() {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/places/${placeId}` },
+    });
+  }
+
+  // 2. Submit Review: open to all hunters
   async function handleSubmitReview(e: React.FormEvent) {
     e.preventDefault();
     if (!hunterName.trim() || !comment.trim()) return;
@@ -135,7 +144,7 @@ export default function PlaceDetailPage() {
 
       if (error) throw error;
 
-      alert('🎉 Review posted! +25 Hunter XP gained.');
+      alert('🎉 Review posted! Thank you, Hunter.');
       setShowForm(false);
       setComment('');
       loadPlaceAndReviews();
@@ -147,7 +156,7 @@ export default function PlaceDetailPage() {
     }
   }
 
-  // Handle Admin Direct Inline Edit Submission
+  // 3. Admin Direct Inline Edit Submission
   async function handleAdminEditSave(e: React.FormEvent) {
     e.preventDefault();
     try {
@@ -188,7 +197,7 @@ export default function PlaceDetailPage() {
   if (loading) {
     return (
       <div className="flex-1 bg-bau-cream flex items-center justify-center font-baloo font-bold text-sm text-gray-500">
-        ⚡ Loading place & reviews...
+        ⚡ Loading spot details...
       </div>
     );
   }
@@ -197,8 +206,8 @@ export default function PlaceDetailPage() {
     return (
       <div className="flex-1 bg-bau-cream p-6 flex flex-col items-center justify-center gap-3">
         <h2 className="font-baloo font-extrabold text-xl">Place Not Found</h2>
-        <button onClick={() => router.push('/')} className="bg-bau-black text-white px-5 py-2.5 rounded-xl font-baloo font-bold text-xs">
-          Back to Map
+        <button onClick={() => router.back()} className="bg-bau-black text-white px-5 py-2.5 rounded-xl font-baloo font-bold text-xs">
+          ← Back to Map
         </button>
       </div>
     );
@@ -209,25 +218,31 @@ export default function PlaceDetailPage() {
   const gallery = (place as any).gallery || [
     'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80',
     'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&q=80',
-    'https://images.unsplash.com/photo-1529563021893-cc83c992d75d?w=400&q=80'
+    'https://images.unsplash.com/photo-1529563021893-cc83c992d75d?w=400&q=80',
   ];
+
+  // Coordinates for navigation redirects
+  const lat = Number(place.lat);
+  const lng = Number(place.lng);
+  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+  const wazeUrl = `https://waze.com/ul?ll=${lat},${lng}&navigate=yes`;
 
   return (
     <div className="flex-1 flex flex-col h-full bg-bau-cream overflow-y-auto">
-      {/* Top Banner with Safe Area Header Padding */}
+      {/* Top Banner with Back Button & Save Spot */}
       <div className="bg-bau-yellow border-b-[2.5px] border-bau-black p-5 pt-[calc(env(safe-area-inset-top,44px)+16px)] relative shrink-0">
         <div className="flex items-center justify-between">
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.back()}
             className="w-9 h-9 rounded-xl bg-bau-cream border-[2.5px] border-bau-black font-extrabold text-sm flex items-center justify-center shadow-bau-sm active:translate-x-0.5 active:translate-y-0.5"
           >
             ←
           </button>
 
           <div className="flex items-center gap-2">
-            {/* ⭐ FAVORITE BUTTON */}
-            <button 
-              onClick={() => toggleFavorite(placeId)}
+            {/* ⭐ SAVE BUTTON (Requires login) */}
+            <button
+              onClick={handleSaveClick}
               className={`border-[2.5px] border-bau-black font-baloo font-extrabold text-xs px-3.5 py-1.5 rounded-xl shadow-bau-sm active:scale-95 transition-all ${
                 isFav ? 'bg-bau-red text-white' : 'bg-white text-bau-black'
               }`}
@@ -260,13 +275,35 @@ export default function PlaceDetailPage() {
           <div className="bg-white border-[1.5px] border-bau-black rounded-full px-3 py-1 font-bold text-xs shadow-bau-sm">{place.price_level || '💰💰'}</div>
         </div>
 
+        {/* 🗺️ 1-TAP GPS NAVIGATION REDIRECTS (Google Maps + Waze) */}
+        <div className="grid grid-cols-2 gap-2.5">
+          <a
+            href={googleMapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 bg-white border-[2.5px] border-bau-black py-2.5 px-3 rounded-xl shadow-bau-sm font-baloo font-extrabold text-xs text-bau-black active:translate-x-0.5 active:translate-y-0.5 transition-transform"
+          >
+            <span>🗺️</span>
+            <span>Google Maps</span>
+          </a>
+          <a
+            href={wazeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 bg-[#33CCFF] text-bau-black border-[2.5px] border-bau-black py-2.5 px-3 rounded-xl shadow-bau-sm font-baloo font-extrabold text-xs active:translate-x-0.5 active:translate-y-0.5 transition-transform"
+          >
+            <span>🚗</span>
+            <span>Waze Route</span>
+          </a>
+        </div>
+
         {/* Overview */}
         <div className="bg-white border-[2.5px] border-bau-black rounded-2xl p-4 text-xs leading-relaxed text-gray-800 shadow-bau-sm">
-          <strong className="block font-baloo text-sm mb-1 text-bau-black">About This Place</strong>
+          <strong className="block font-baloo text-sm mb-1 text-bau-black">About This Spot</strong>
           {place.description || place.quote || 'No detailed description available yet.'}
         </div>
 
-        {/* 🕒 OPENING HOURS */}
+        {/* 🕒 Operating Hours */}
         <div className="bg-white border-[2.5px] border-bau-black rounded-2xl p-4 text-xs shadow-bau-sm flex items-center gap-3">
           <div className="w-10 h-10 bg-bau-cream rounded-full border-2 border-bau-black flex items-center justify-center text-lg shrink-0">🕒</div>
           <div>
@@ -275,7 +312,7 @@ export default function PlaceDetailPage() {
           </div>
         </div>
 
-        {/* 2. Official Verdict Stamp */}
+        {/* Official Verdict Card */}
         <div className="bg-[#191B28] border-[2.5px] border-bau-black rounded-2xl p-5 text-bau-cream relative overflow-hidden shadow-bau">
           <div className="text-[10px] text-bau-yellow font-extrabold tracking-widest uppercase font-space">🏆 OFFICIAL FOOD HUNTER VERDICT</div>
           <div className="font-baloo font-extrabold text-3xl text-white my-1">
@@ -284,28 +321,22 @@ export default function PlaceDetailPage() {
 
           {officialReview ? (
             <>
-              {/* Detailed Breakdown */}
+              {/* Detailed 4-Item Sub-Score Breakdown Preserved */}
               <div className="grid grid-cols-2 gap-2 my-3">
                 <div className="bg-white/10 border border-white/15 rounded-lg p-2 text-[11px]"><span className="text-gray-400 block">Food Quality</span><span className="font-baloo font-extrabold text-sm text-bau-yellow">{'★'.repeat(officialReview.food_score || 5)}</span></div>
                 <div className="bg-white/10 border border-white/15 rounded-lg p-2 text-[11px]"><span className="text-gray-400 block">Service</span><span className="font-baloo font-extrabold text-sm text-bau-yellow">{'★'.repeat(officialReview.service_score || 4)}</span></div>
                 <div className="bg-white/10 border border-white/15 rounded-lg p-2 text-[11px]"><span className="text-gray-400 block">Environment</span><span className="font-baloo font-extrabold text-sm text-bau-yellow">{'★'.repeat(officialReview.env_score || 5)}</span></div>
                 <div className="bg-white/10 border border-white/15 rounded-lg p-2 text-[11px]"><span className="text-gray-400 block">Value</span><span className="font-baloo font-extrabold text-sm text-bau-yellow">{'★'.repeat(officialReview.value_score || 4)}</span></div>
               </div>
-
               <p className="text-xs leading-relaxed text-gray-200 mt-2 mb-3">&quot;{officialReview.verdict_text}&quot;</p>
               <div className="flex justify-between text-[10px] text-gray-400 border-t border-white/15 pt-2"><span>Lead Hunter: {officialReview.hunter_name}</span><span>Reviewed: {officialReview.reviewed_at}</span></div>
             </>
           ) : (
-            <p className="text-xs text-gray-300 mt-2">Official Food Hunter audit pending. Community hunters can leave reviews below!</p>
+            <p className="text-xs text-gray-300 mt-2">&quot;{place.quote || 'Official review pending. Community reviews below!'}&quot;</p>
           )}
         </div>
 
-        {/* Curator Disclaimer */}
-        <div className="bg-white border-2 border-dashed border-bau-black rounded-xl p-3.5 text-xs text-gray-700">
-          🔒 <strong>Independent Process:</strong> Every visit is paid for out-of-pocket. There are zero sponsorships, free meals, or paid endorsements. Our ratings remain 100% authentic and unbiased.
-        </div>
-
-        {/* 📸 GALLERY GRID */}
+        {/* 📸 Photos Gallery */}
         <div className="bg-white border-[2.5px] border-bau-black rounded-2xl p-4 shadow-bau-sm">
           <h3 className="font-baloo font-extrabold text-base text-bau-black mb-2">📸 Vibe & Gallery</h3>
           <div className="grid grid-cols-3 gap-2">
@@ -317,20 +348,25 @@ export default function PlaceDetailPage() {
           </div>
         </div>
 
-        {/* Community Hunters Reviews Section */}
+        {/* Community Reviews Section (Open to everyone!) */}
         <div className="flex flex-col gap-2.5 mt-1 border-t-[2.5px] border-bau-black pt-4">
           <div className="flex items-center justify-between">
             <h3 className="font-baloo font-extrabold text-base text-bau-black flex items-center gap-1.5">
               <span>👥 Community Hunters</span>
               <span className="text-xs font-inter font-normal text-gray-500">({communityReviews.length})</span>
             </h3>
-            <button onClick={() => setShowForm(true)} className="bg-bau-yellow text-bau-black border-[1.5px] border-bau-black font-baloo font-extrabold text-xs px-3 py-1 rounded-full shadow-bau-sm active:scale-95 transition-transform">
+            <button
+              onClick={() => setShowForm(true)}
+              className="bg-bau-yellow text-bau-black border-[1.5px] border-bau-black font-baloo font-extrabold text-xs px-3 py-1 rounded-full shadow-bau-sm active:scale-95 transition-transform"
+            >
               + Write Review
             </button>
           </div>
 
           {communityReviews.length === 0 ? (
-            <div className="bg-white border-[2.5px] border-bau-black rounded-2xl p-5 text-center text-xs text-gray-500 shadow-bau-sm">No community reviews yet. Be the first hunter to rate this spot!</div>
+            <div className="bg-white border-[2.5px] border-bau-black rounded-2xl p-5 text-center text-xs text-gray-500 shadow-bau-sm">
+              No reviews yet. Be the first hunter to share your verdict!
+            </div>
           ) : (
             communityReviews.map((rev) => {
               const badge = getTierBadge(rev.rating_tier);
@@ -354,21 +390,56 @@ export default function PlaceDetailPage() {
         </div>
       </div>
 
-      {/* 👥 MODAL: LEAVE REVIEW */}
+      {/* 🔐 MODAL: PLEASE SIGN IN TO SAVE */}
+      {showLoginPrompt && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-bau-cream border-[2.5px] border-bau-black rounded-3xl p-5 shadow-2xl text-center">
+            <div className="w-12 h-12 rounded-2xl bg-bau-yellow border-2 border-bau-black flex items-center justify-center mx-auto mb-3 text-2xl shadow-bau-sm">
+              ⭐
+            </div>
+            <h3 className="font-baloo font-extrabold text-lg text-bau-black">Save to Your Favorites</h3>
+            <p className="text-xs text-gray-600 mt-1 mb-4">
+              Sign in with your Google account to bookmark this eatery and sync your saved list across devices!
+            </p>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={handleGoogleLogin}
+                className="w-full bg-white text-bau-black border-[2px] border-bau-black py-2.5 rounded-xl font-baloo font-extrabold text-xs shadow-bau-sm flex items-center justify-center gap-2"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24">
+                  <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"/>
+                  <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/>
+                  <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15s.7 5.3 1.9 7.7l3.7-2.9z"/>
+                  <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.2L1.9 16c1.8 3.7 5.6 7 10.1 7z"/>
+                </svg>
+                <span>Sign in with Google</span>
+              </button>
+              <button
+                onClick={() => setShowLoginPrompt(false)}
+                className="text-xs font-bold text-gray-500 py-1"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✍️ MODAL: WRITE REVIEW (No Login Required) */}
       {showReviewForm && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-sm bg-bau-cream border-[2.5px] border-bau-black rounded-3xl p-5 shadow-2xl">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="font-baloo font-extrabold text-lg">✍️ Hunter Review</h3>
+              <h3 className="font-baloo font-extrabold text-lg">✍️ Write Community Review</h3>
               <button onClick={() => setShowForm(false)} className="w-7 h-7 rounded-full bg-white border border-bau-black font-bold text-xs flex items-center justify-center">✕</button>
             </div>
             <form onSubmit={handleSubmitReview} className="flex flex-col gap-3">
               <div>
-                <label className="block font-baloo font-extrabold text-xs mb-1">Hunter Name *</label>
+                <label className="block font-baloo font-extrabold text-xs mb-1">Your Name / Nickname *</label>
                 <input type="text" required value={hunterName} onChange={(e) => setHunterName(e.target.value)} placeholder="e.g. BangsarFoodie" className="w-full bg-white border-[2px] border-bau-black rounded-xl p-2.5 text-xs font-semibold outline-none" />
               </div>
               <div>
-                <label className="block font-baloo font-extrabold text-xs mb-1">Verdict *</label>
+                <label className="block font-baloo font-extrabold text-xs mb-1">Your Verdict *</label>
                 <select value={selectedTier} onChange={(e) => setSelectedTier(e.target.value)} className="w-full bg-white border-[2px] border-bau-black rounded-xl p-2.5 text-xs font-semibold outline-none">
                   <option value="jengggg">🔥 Jengggg (5★)</option>
                   <option value="hociakk">🤤 Hociakk (4★)</option>
@@ -377,8 +448,8 @@ export default function PlaceDetailPage() {
                 </select>
               </div>
               <div>
-                <label className="block font-baloo font-extrabold text-xs mb-1">Comments & Tips *</label>
-                <textarea rows={3} required value={comment} onChange={(e) => setComment(e.target.value)} placeholder="What should we order? Parking tips?" className="w-full bg-white border-[2px] border-bau-black rounded-xl p-2.5 text-xs font-semibold outline-none resize-none" />
+                <label className="block font-baloo font-extrabold text-xs mb-1">Comments & Food Tips *</label>
+                <textarea rows={3} required value={comment} onChange={(e) => setComment(e.target.value)} placeholder="What should we order? Any parking tips?" className="w-full bg-white border-[2px] border-bau-black rounded-xl p-2.5 text-xs font-semibold outline-none resize-none" />
               </div>
               <button type="submit" disabled={submittingReview} className="mt-1 bg-bau-blue text-white py-3 rounded-xl font-baloo font-extrabold text-sm border-[2px] border-bau-black shadow-bau">{submittingReview ? 'Posting...' : '🚀 Post Review (+25 XP)'}</button>
             </form>
@@ -386,7 +457,7 @@ export default function PlaceDetailPage() {
         </div>
       )}
 
-      {/* 🔒 ADMIN ONLY INLINE EDIT MODAL FORM */}
+      {/* 🔒 ADMIN ONLY INLINE EDIT MODAL FORM (Full Direct Editor) */}
       {showAdminEditModal && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-md bg-bau-cream border-[2.5px] border-bau-black rounded-3xl p-5 shadow-2xl overflow-y-auto max-h-[90vh]">

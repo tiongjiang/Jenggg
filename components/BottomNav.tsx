@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { TrainerBoy } from './TrainerBoy';
 
 export const BottomNav: React.FC = () => {
   const pathname = usePathname();
@@ -27,19 +26,35 @@ export const BottomNav: React.FC = () => {
         <span>Saved</span>
       </button>
 
-      {/* 2. Hunt Tab (Home/Map) */}
+      {/* 2. Hunt Tab (Center Floating Pixel Burger Button) */}
       <div className="relative -top-5 flex flex-col items-center z-50">
         <button
           type="button"
           onClick={() => router.push('/')}
           className="group cursor-pointer flex flex-col items-center focus:outline-none"
         >
-          <div className="w-[60px] h-[60px] rounded-full bg-bau-cream p-1 shadow-bau active:scale-95 transition-transform">
-            <div className="w-full h-full rounded-full bg-bau-red border-[2px] border-bau-black relative overflow-hidden flex items-center justify-center">
-              <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-white border-t-[2px] border-bau-black" />
-              <div className="relative z-10 scale-110">
-                <TrainerBoy scale={0.9} />
-              </div>
+          <div className="w-[62px] h-[62px] rounded-full bg-bau-cream p-1 shadow-bau active:scale-95 transition-transform flex items-center justify-center border-[2.5px] border-bau-black">
+            <div className="w-full h-full rounded-full bg-bau-yellow border-[2px] border-bau-black flex items-center justify-center shadow-inner">
+              {/* Retro Pixel Art Burger SVG */}
+              <svg viewBox="0 0 32 32" width="34" height="34" shapeRendering="crispEdges">
+                {/* Top Bun */}
+                <rect x="6" y="7" width="20" height="7" rx="3" fill="#E59830" stroke="#141416" strokeWidth="1.8" />
+                {/* Sesame Seeds */}
+                <rect x="10" y="9" width="2" height="1" fill="#FFFDF7" />
+                <rect x="15" y="8" width="2" height="1" fill="#FFFDF7" />
+                <rect x="19" y="10" width="2" height="1" fill="#FFFDF7" />
+                {/* Fresh Lettuce */}
+                <rect x="5" y="14" width="22" height="2" fill="#00B368" />
+                <rect x="6" y="15" width="20" height="1" fill="#008F53" />
+                {/* Juicy Tomato */}
+                <rect x="7" y="16" width="18" height="2" fill="#FF3B30" />
+                {/* Melted Cheese */}
+                <polygon points="8,18 24,18 21,21 11,21" fill="#FFCC00" />
+                {/* Beef Patty */}
+                <rect x="5" y="19" width="22" height="4" rx="1.5" fill="#5C3317" stroke="#141416" strokeWidth="1.5" />
+                {/* Bottom Bun */}
+                <rect x="6" y="23" width="20" height="4" rx="2" fill="#E59830" stroke="#141416" strokeWidth="1.8" />
+              </svg>
             </div>
           </div>
           <span
