@@ -11,64 +11,211 @@ interface MapProps {
   places: Place[];
 }
 
-// 🎯 Named constant for Level of Detail (LoD) threshold
 export const ZOOM_LABEL_THRESHOLD = 15;
-
-// Approximate pixel collision bounding box dimensions (width x height)
 const LABEL_COLLISION_WIDTH = 160; 
 const LABEL_COLLISION_HEIGHT = 48;
 
 // Mapping to Tailwind theme.extend.colors.tier
 const TIER_COLORS: Record<string, { body: string; accent: string; label: string; text: string }> = {
-  jengggg: { body: '#FFCC00', accent: '#E5B800', label: '🔥 Jengggg', text: '#141416' },
-  hociakk: { body: '#00B368', accent: '#008F53', label: '🤤 Hociakk', text: '#FFFFFF' },
-  mamadei: { body: '#F4EEDC', accent: '#D8D2C0', label: '😐 Ma Ma Dei', text: '#141416' },
-  hmmm:    { body: '#A0A4B8', accent: '#7E8296', label: '🤨 Hmmm', text: '#FFFFFF' },
-  ewww:    { body: '#7B3294', accent: '#5A1F6E', label: '😖 Ewww', text: '#FFFFFF' },
+  jengggg: { body: '#FFCC00', accent: '#D99B00', label: '🔥 Jengggg', text: '#141416' },
+  hociakk: { body: '#00B368', accent: '#007A43', label: '🤤 Hociakk', text: '#FFFFFF' },
+  mamadei: { body: '#F4EEDC', accent: '#C8BEA5', label: '😐 Ma Ma Dei', text: '#141416' },
+  hmmm:    { body: '#A0A4B8', accent: '#6E7285', label: '🤨 Hmmm', text: '#FFFFFF' },
+  ewww:    { body: '#7B3294', accent: '#4E1B60', label: '😖 Ewww', text: '#FFFFFF' },
 };
 
 /**
- * 👾 SVG Monster Creature Icon Generator
+ * 🎲 Deterministic Hash Generator
+ * Converts place ID into pseudo-random integers so every place has a permanent unique look.
  */
-function getMonsterSvg(color: string, accent: string) {
-  return `
-    <svg viewBox="0 0 40 40" width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <!-- Horns / Ears -->
-      <path d="M10 14L5 4L16 9" fill="${accent}" stroke="#141416" stroke-width="2.5" stroke-linejoin="round"/>
-      <path d="M30 14L35 4L24 9" fill="${accent}" stroke="#141416" stroke-width="2.5" stroke-linejoin="round"/>
-      
-      <!-- Monster Body (Chubby geometric shape) -->
-      <rect x="5" y="9" width="30" height="27" rx="13" fill="${color}" stroke="#141416" stroke-width="2.5"/>
-      
-      <!-- Belly Accent Plate -->
-      <path d="M12 26C12 22 15 20 20 20C25 20 28 22 28 26C28 30 25 33 20 33C15 33 12 30 12 26Z" fill="${accent}" opacity="0.45"/>
-      
-      <!-- Eyes -->
+function hashString(str: string) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+/**
+ * 👾 Procedural Modular Monster SVG Generator
+ * Generates endless monster combinations based on Place ID + Tier Color
+ */
+function getProceduralMonsterSvg(seedStr: string, color: string, accent: string) {
+  const seed = hashString(seedStr || 'monster');
+
+  // Trait variations
+  const bodyShape = seed % 4;        // 0: Rounded Box, 1: Slime/Dome, 2: Oval, 3: Horned Bulb
+  const earType = (seed >> 2) % 5;   // 0: Devil Horns, 1: Bat Wings, 2: Antennae, 3: Spikes, 4: Cat Ears
+  const eyeStyle = (seed >> 4) % 4;  // 0: Two Big Eyes, 1: One Giant Cyclops, 2: Three Alien Eyes, 3: Winking
+  const mouthStyle = (seed >> 6) % 4;// 0: Sharp Fangs, 1: Buck Teeth, 2: Shark Grin, 3: Tongue Out
+  const bellyStyle = (seed >> 8) % 3;// 0: Round Belly, 1: Dino Scales, 2: Stitches
+
+  // 1. EAR / HORN VARIATIONS
+  let earsSvg = '';
+  if (earType === 0) {
+    // Devil Horns
+    earsSvg = `
+      <path d="M10 13L4 3L15 8" fill="${accent}" stroke="#141416" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M30 13L36 3L25 8" fill="${accent}" stroke="#141416" stroke-width="2.5" stroke-linejoin="round"/>
+    `;
+  } else if (earType === 1) {
+    // Bat / Goblin Wings
+    earsSvg = `
+      <path d="M8 16L1 11L6 21" fill="${accent}" stroke="#141416" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="M32 16L39 11L34 21" fill="${accent}" stroke="#141416" stroke-width="2.2" stroke-linejoin="round"/>
+    `;
+  } else if (earType === 2) {
+    // Alien Antennae with Bobble
+    earsSvg = `
+      <path d="M14 10L11 3" stroke="#141416" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="11" cy="3" r="3" fill="${accent}" stroke="#141416" stroke-width="2"/>
+      <path d="M26 10L29 3" stroke="#141416" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="29" cy="3" r="3" fill="${accent}" stroke="#141416" stroke-width="2"/>
+    `;
+  } else if (earType === 3) {
+    // Tri-Spike Mohawk
+    earsSvg = `
+      <polygon points="14,10 16,3 18,10" fill="${accent}" stroke="#141416" stroke-width="2"/>
+      <polygon points="19,9 20,2 22,9" fill="${accent}" stroke="#141416" stroke-width="2"/>
+      <polygon points="23,10 25,3 27,10" fill="${accent}" stroke="#141416" stroke-width="2"/>
+    `;
+  } else {
+    // Fluffy Cat Tufts
+    earsSvg = `
+      <polygon points="9,14 13,5 18,11" fill="${accent}" stroke="#141416" stroke-width="2.5"/>
+      <polygon points="31,14 27,5 22,11" fill="${accent}" stroke="#141416" stroke-width="2.5"/>
+    `;
+  }
+
+  // 2. BODY VARIATIONS
+  let bodySvg = '';
+  if (bodyShape === 0) {
+    // Chubby Rounded Rectangle
+    bodySvg = `<rect x="6" y="9" width="28" height="27" rx="12" fill="${color}" stroke="#141416" stroke-width="2.5"/>`;
+  } else if (bodyShape === 1) {
+    // Slime Dome
+    bodySvg = `<path d="M7 36C6 24 9 10 20 10C31 10 34 24 33 36C27 37 13 37 7 36Z" fill="${color}" stroke="#141416" stroke-width="2.5"/>`;
+  } else if (bodyShape === 2) {
+    // Big Egg Oval
+    bodySvg = `<ellipse cx="20" cy="23" rx="15" ry="14" fill="${color}" stroke="#141416" stroke-width="2.5"/>`;
+  } else {
+    // Bean / Ghost Form
+    bodySvg = `<path d="M8 20C8 12 13 9 20 9C27 9 32 12 32 20C32 29 29 36 26 36C23 36 22 33 20 33C18 33 17 36 14 36C11 36 8 29 8 20Z" fill="${color}" stroke="#141416" stroke-width="2.5"/>`;
+  }
+
+  // 3. BELLY ACCENTS
+  let bellySvg = '';
+  if (bellyStyle === 0) {
+    // Classic Belly Oval
+    bellySvg = `<ellipse cx="20" cy="27" rx="7" ry="5.5" fill="${accent}" opacity="0.45"/>`;
+  } else if (bellyStyle === 1) {
+    // Dino Scales / Stripes
+    bellySvg = `
+      <circle cx="20" cy="24" r="1.5" fill="${accent}"/>
+      <circle cx="16" cy="28" r="1.5" fill="${accent}"/>
+      <circle cx="24" cy="28" r="1.5" fill="${accent}"/>
+    `;
+  } else {
+    // Stitched Patch
+    bellySvg = `
+      <line x1="17" y1="26" x2="23" y2="28" stroke="#141416" stroke-width="1.8"/>
+      <line x1="18" y1="25" x2="19" y2="28" stroke="#141416" stroke-width="1.5"/>
+      <line x1="21" y1="26" x2="22" y2="29" stroke="#141416" stroke-width="1.5"/>
+    `;
+  }
+
+  // 4. EYE VARIATIONS
+  let eyesSvg = '';
+  if (eyeStyle === 0) {
+    // Standard Cute Twin Eyes
+    eyesSvg = `
       <circle cx="14" cy="18" r="4.5" fill="#FFFFFF" stroke="#141416" stroke-width="2"/>
       <circle cx="26" cy="18" r="4.5" fill="#FFFFFF" stroke="#141416" stroke-width="2"/>
       <circle cx="15.5" cy="17.5" r="2" fill="#141416"/>
       <circle cx="24.5" cy="17.5" r="2" fill="#141416"/>
-      <circle cx="16.5" cy="16.5" r="0.75" fill="#FFFFFF"/>
-      <circle cx="25.5" cy="16.5" r="0.75" fill="#FFFFFF"/>
-      
-      <!-- Cute Fanged Smile -->
+      <circle cx="16.5" cy="16.5" r="0.8" fill="#FFFFFF"/>
+      <circle cx="25.5" cy="16.5" r="0.8" fill="#FFFFFF"/>
+    `;
+  } else if (eyeStyle === 1) {
+    // Big Giant Cyclops Eye
+    eyesSvg = `
+      <circle cx="20" cy="17" r="6.5" fill="#FFFFFF" stroke="#141416" stroke-width="2.2"/>
+      <circle cx="20" cy="17" r="3" fill="#141416"/>
+      <circle cx="21.5" cy="15.5" r="1" fill="#FFFFFF"/>
+    `;
+  } else if (eyeStyle === 2) {
+    // Tri-Eye Alien
+    eyesSvg = `
+      <circle cx="13" cy="18" r="3.5" fill="#FFFFFF" stroke="#141416" stroke-width="1.8"/>
+      <circle cx="27" cy="18" r="3.5" fill="#FFFFFF" stroke="#141416" stroke-width="1.8"/>
+      <circle cx="20" cy="14" r="3" fill="#FFFFFF" stroke="#141416" stroke-width="1.8"/>
+      <circle cx="14" cy="18" r="1.5" fill="#141416"/>
+      <circle cx="26" cy="18" r="1.5" fill="#141416"/>
+      <circle cx="20" cy="14" r="1.2" fill="#141416"/>
+    `;
+  } else {
+    // Winking / Mischievous Eyes
+    eyesSvg = `
+      <circle cx="14" cy="18" r="4.5" fill="#FFFFFF" stroke="#141416" stroke-width="2"/>
+      <circle cx="15.5" cy="17.5" r="2" fill="#141416"/>
+      <path d="M23 18C25 15 28 15 30 18" stroke="#141416" stroke-width="2.5" stroke-linecap="round"/>
+    `;
+  }
+
+  // 5. MOUTH & TEETH VARIATIONS
+  let mouthSvg = '';
+  if (mouthStyle === 0) {
+    // Vampire Dual Fangs
+    mouthSvg = `
       <path d="M16 25C18 27 22 27 24 25" stroke="#141416" stroke-width="2" stroke-linecap="round"/>
-      <polygon points="17,25 18,27 19,25" fill="#FFFFFF"/>
-      <polygon points="21,25 22,27 23,25" fill="#FFFFFF"/>
+      <polygon points="17,25 18,27.5 19,25" fill="#FFFFFF"/>
+      <polygon points="21,25 22,27.5 23,25" fill="#FFFFFF"/>
+    `;
+  } else if (mouthStyle === 1) {
+    // Monster Buck Tooth
+    mouthSvg = `
+      <path d="M16 25H24" stroke="#141416" stroke-width="2" stroke-linecap="round"/>
+      <rect x="18.5" y="25" width="3" height="3" fill="#FFFFFF" stroke="#141416" stroke-width="1"/>
+    `;
+  } else if (mouthStyle === 2) {
+    // Wavy Shark Grin
+    mouthSvg = `
+      <path d="M14 24C16 28 24 28 26 24Z" fill="#141416"/>
+      <polygon points="16,24 18,26 20,24" fill="#FFFFFF"/>
+      <polygon points="20,24 22,26 24,24" fill="#FFFFFF"/>
+    `;
+  } else {
+    // Playful Tongue Sticking Out
+    mouthSvg = `
+      <path d="M16 24C18 26 22 26 24 24" stroke="#141416" stroke-width="2" stroke-linecap="round"/>
+      <path d="M18 25C18 28 22 28 22 25Z" fill="#FF3B30" stroke="#141416" stroke-width="1.2"/>
+    `;
+  }
+
+  return `
+    <svg viewBox="0 0 40 40" width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      ${earsSvg}
+      ${bodySvg}
+      ${bellySvg}
+      ${eyesSvg}
+      ${mouthSvg}
     </svg>
   `;
 }
 
 /**
- * Creates Leaflet divIcon with LoD classes and collision badges
+ * Creates Leaflet divIcon with the uniquely generated monster
  */
 function createMonsterIcon(group: Place[], isZoomedIn: boolean) {
   const primary = group[0];
   const isCluster = group.length > 1;
   const safeTier = primary.current_tier || 'mamadei';
   const tierData = TIER_COLORS[safeTier] || TIER_COLORS.mamadei;
-  
-  const monsterSvg = getMonsterSvg(
+
+  // Generate completely custom creature using place ID / name as seed
+  const monsterSvg = getProceduralMonsterSvg(
+    primary.id || primary.name,
     primary.is_requested ? '#FFFFFF' : tierData.body,
     primary.is_requested ? '#D1D5DB' : tierData.accent
   );
@@ -145,7 +292,7 @@ function createUserTrainerIcon() {
 }
 
 function getFallbackImage(category: string) {
-  const cat = category.toLowerCase();
+  const cat = (category || '').toLowerCase();
   if (cat.includes('nasi') || cat.includes('kandar') || cat.includes('street')) return 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80';
   if (cat.includes('burger')) return 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80';
   if (cat.includes('bbq') || cat.includes('mookata')) return 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=600&q=80';
@@ -153,9 +300,6 @@ function getFallbackImage(category: string) {
   return 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80';
 }
 
-/**
- * Tracks Zoom Level for LoD & handles Map Ready events
- */
 function MapEventsWatcher({ onZoomChange }: { onZoomChange: (zoom: number) => void }) {
   const map = useMapEvents({
     zoomend() {
@@ -201,12 +345,9 @@ export default function LeafletMapComponent({ places }: MapProps) {
 
   const isZoomedIn = currentZoom >= ZOOM_LABEL_THRESHOLD;
 
-  /**
-   * 4. Bounding-Box Collision Detection (Active ONLY when labels are visible)
-   */
+  // Collision detection for hawker hubs
   const groupedPlaceMarkers = useMemo(() => {
     if (!isZoomedIn) {
-      // Zoomed out: Free overlapping monster icons
       return places.map((p) => ({
         key: p.id,
         lat: Number(p.lat),
@@ -215,9 +356,7 @@ export default function LeafletMapComponent({ places }: MapProps) {
       }));
     }
 
-    // Zoomed in: Cluster close labels together using simple coordinate proximity
     const clusters: { key: string; lat: number; lng: number; items: Place[] }[] = [];
-    // Approximate coordinate tolerance corresponding to label width/height at zoom 15+
     const LAT_PROXIMITY = 0.0007;
     const LNG_PROXIMITY = 0.0007;
 
@@ -266,7 +405,7 @@ export default function LeafletMapComponent({ places }: MapProps) {
           </Popup>
         </Marker>
 
-        {/* 👾 Tier-Colored Monster Markers with LoD */}
+        {/* 👾 Procedural Diverse Monster Markers */}
         {groupedPlaceMarkers.map((group) => {
           const isCluster = group.items.length > 1;
           const firstPlace = group.items[0];
@@ -277,10 +416,8 @@ export default function LeafletMapComponent({ places }: MapProps) {
               position={[group.lat, group.lng]}
               icon={createMonsterIcon(group.items, isZoomedIn)}
             >
-              {/* 3. Tap-to-Expand override: Opens popup detail card at any zoom */}
               <Popup className="bauhaus-leaflet-popup" closeButton={false}>
                 {isCluster ? (
-                  /* Multi-Place Hawker Cluster Card */
                   <div className="w-[240px] bg-bau-cream border-[2.5px] border-bau-black rounded-2xl p-3 shadow-bau select-none">
                     <div className="flex items-center justify-between pb-2 mb-2 border-b-2 border-bau-black">
                       <div className="font-baloo font-extrabold text-sm text-bau-black">
@@ -318,7 +455,6 @@ export default function LeafletMapComponent({ places }: MapProps) {
                     </div>
                   </div>
                 ) : (
-                  /* Single Place Standard Card */
                   <div className="w-[230px] bg-bau-cream border-[2.5px] border-bau-black rounded-2xl overflow-hidden shadow-bau select-none">
                     <div className="h-24 w-full relative overflow-hidden bg-gray-950 border-b-2 border-bau-black">
                       <img
