@@ -52,7 +52,7 @@ export default function ProfilePage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=/profile`,
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
       if (error) throw error;
@@ -62,6 +62,7 @@ export default function ProfilePage() {
       setAuthInProgress(false);
     }
   };
+
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
